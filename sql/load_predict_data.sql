@@ -1,0 +1,12 @@
+\copy s1a_n from '/home/a-kashiwagi/dat/NC_000908.dat.s1a' with csv
+\copy s1a_r from '/home/a-kashiwagi/dat/NC_000908.rev.s1a' with csv
+\copy s1n_n from '/home/a-kashiwagi/dat/NC_000908.dat.s1n' with csv
+\copy s1n_r from '/home/a-kashiwagi/dat/NC_000908.rev.s1n' with csv
+\copy s2a_n from '/home/a-kashiwagi/dat/NC_000908.dat.s2a' with csv
+\copy s2a_r from '/home/a-kashiwagi/dat/NC_000908.rev.s2a' with csv
+\copy s2n_n from '/home/a-kashiwagi/dat/NC_000908.dat.s2n' with csv
+\copy s2n_r from '/home/a-kashiwagi/dat/NC_000908.rev.s2n' with csv
+\copy s3a_n from '/home/a-kashiwagi/dat/NC_000908.dat.s3a' with csv
+\copy s3a_r from '/home/a-kashiwagi/dat/NC_000908.rev.s3a' with csv
+\copy s3n_n from '/home/a-kashiwagi/dat/NC_000908.dat.s3n' with csv
+\copy s3n_r from '/home/a-kashiwagi/dat/NC_000908.rev.s3n' with csv

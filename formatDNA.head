@@ -1,0 +1,18 @@
+<HTML>
+<HEAD>
+<STYLE TYPE='text/css'>
+<!--
+span.adenine { color: red; }
+span.thymine { color: green; }
+span.guanine { color: purple; }
+span.cytosine { color: blue; }
+span.orf { background: #C0D6EC; }
+span.motif { background: #ffab53; }
+-->
+</STYLE>
+</HEAD>
+<BODY>
+<TABLE width=100%>
+<TD>
+<P>
+<tt>

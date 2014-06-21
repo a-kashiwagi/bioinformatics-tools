@@ -1,0 +1,953 @@
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Formatting ORF position data, from DB to html                     */
+/* Program Name : formatDNA                                                   */
+/*                                                                            */
+/* Detail : New create                                                        */
+/* Date   : 2010/08/04                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+
+#define LOOP 1
+#define ON 1
+#define OFF 0
+#define PGTRUE 't'
+#define PGFALSE 'f'
+#define BUFFER_SIZE 1024
+
+#define COLUMN_LIMIT 50				/* Limit of column number     */
+						/*                    in line */
+#define TERM_OF_HEADER 20			/* Out put term of header     */
+						/*                    in line */
+#define PAGE_ROW_LIMIT 100			/* Limit of row line number   */
+						/*                    in page */
+#define CURSOR_BUFFER 100			/* Cursor buffer size         */
+						/*          of fetch of sql   */
+#define BR_TERM 2				/* Term of br for line header */
+
+#define HEADER_FILE "/home/a-kashiwagi/dat/formatDNA.head"
+						/* Header file                */
+#define FOOTER_FILE "/home/a-kashiwagi/dat/formatDNA.foot"
+						/* Footer file                */
+#define OUTPUT_FILE ""				/* Out put file               */
+#define INDEX_FILE "index.html"			/* Index file                 */
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of output file                                           */
+/* Function Name : putFile                                                    */
+/*                                                                            */
+/* Detail : New create                                                        */
+/* Date   : 2010/08/04                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* input  : char *filename : filename                                         */
+/* output : int : number of rows                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+int putFile( char *filename, FILE *out_fp ){
+
+	FILE *in_fp;				/* File pointer               */
+	char line_str[BUFFER_SIZE];		/* String of a line           */
+	int cnt;				/* Counter                    */
+
+	in_fp = fopen( filename, "r" );		/* File open                  */
+	if( in_fp == NULL ){
+						/* Case of Error              */
+		fprintf( stderr,"%s can not open.\n", filename );
+		return(-1);
+	}
+
+	cnt = 0;				/* Counter reset              */
+	while( fgets( line_str, BUFFER_SIZE, in_fp ) != NULL ){
+						/* Get a line                 */
+		fputs( line_str, out_fp );
+		cnt++;				/* Counter increment          */
+	}
+
+	fclose( in_fp );			/* File close                 */
+
+	return( cnt );				/* return                     */
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of output header of data.                                */
+/* Function Name : putDataHeader                                              */
+/*                                                                            */
+/* Detail : New create                                                        */
+/* Date   : 2010/08/21                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* input  : FILE *out_fp     : file pointer of out put file                   */
+/*          char *filename   : filename                                       */
+/*          long page_no     : number of page                                 */
+/*          int column_limit : limit of column in a line                      */
+/*                                                                            */
+/* output : int : normal terminate : 0                                        */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+int putDataHeader(
+	FILE *out_fp,
+	char *filename,
+	long page_no,
+	int column_limit
+){
+	int cnt;				/* General purpose counter    */
+	int start;				/* Start of guide line        */
+
+	start = 1;				/* initialize array           */
+
+	if( page_no > 0 ){
+						/* Put link of "last"         */
+		fprintf(out_fp,
+			"<a href=%s%ld.html>Last</a> ",
+			filename, page_no - 1
+		);
+						/* Set to start count         */
+		start = 6;
+	}
+
+	for( cnt = start; cnt <= column_limit - 5; cnt++ ){
+						/* Out put guide line         */
+		if( (cnt % 10) == 0 ){
+						/* Term of ten                */
+			fputc( '+', out_fp );
+		}else{
+						/* Normal guide line          */
+			fputc( '-', out_fp );
+		}
+	}
+						/* Out put link of "Next"     */
+	fprintf(out_fp,
+		" <a href=%s%ld.html>Next</a>",
+		filename, page_no + 1
+	);
+						/* Out put link of "Index"    */
+	fprintf(out_fp,
+		" <a href=%s>Index</a><br>\n",
+		INDEX_FILE
+	);
+						/* Normal return              */
+	return(0);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of output index.                                         */
+/* Function Name : putIndex                                                   */
+/*                                                                            */
+/* Detail : New create                                                        */
+/* Date   : 2010/08/21                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* input  : char *filename     : filename                                     */
+/*          long page_no       : number of page                               */
+/*          int page_row_limit : limit of line in a page                      */
+/*          int column_limit   : limit of column in a line                    */
+/*                                                                            */
+/* output : int : normal terminate : 0  error : -1                            */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/******************************************************************************/
+int putIndex(
+	char *filename,
+	long page_no,
+	int page_row_limit,
+	int column_limit
+){
+	FILE *fp;				/* File pointer               */
+	char buffer[BUFFER_SIZE];		/* Buffer of file name        */
+	char format_buf[BUFFER_SIZE];		/* Buffer of format           */
+	long cnt;				/* General purpose counter    */
+	int digit_num;				/* Number of digit            */
+	int br_cnt;				/* Counter of out put <br>    */
+
+						/* Make file name             */
+	sprintf( buffer, "%s%ld.html", filename, page_no );
+						/* File open for write        */
+	fp = fopen( buffer, "w" );
+	if( fp == NULL ){
+						/* Case of error              */
+		fprintf(stderr, "Can not open %s.\n",buffer);
+		return(-1);
+	}
+						/* Caluculate to digit number */
+	digit_num = (int)log10( (double)
+		((( column_limit * page_row_limit ) * page_no ) + 1)
+	) + 1;
+						/* Make format for printf     */
+	sprintf(format_buf,
+		"<a href=%%s%%ld.html>%%0%dld-%%0%dld</a>  \n",
+		digit_num, digit_num
+	);
+						/* Out put Index              */
+	fprintf( fp, "<HTML>\n");
+	fprintf( fp, "<BODY>\n");
+						/* Set term of <br> counter   */
+	br_cnt = BR_TERM;
+	for(cnt = 0; cnt < page_no; cnt++ ){
+						/* Out put each links         */
+		fprintf(fp,
+			format_buf,
+			filename,
+			cnt,
+			(( column_limit * page_row_limit ) * cnt) + 1,
+			( column_limit * page_row_limit ) * (cnt + 1)
+		);
+
+		if( br_cnt == 0 ){
+						/* Out put <br>               */
+			fprintf(fp, "<br>\n");
+			br_cnt = BR_TERM;
+		}else{
+						/* br counter increment       */
+			br_cnt--;
+		}
+	}
+
+	fprintf( fp, "</BODY>\n");
+	fprintf( fp, "</HTML>\n");
+						/* File close                 */
+	fclose(fp);
+						/* Return                     */
+	return(0);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of file copy                                             */
+/* Function Name : filecopy                                                   */
+/*                                                                            */
+/* Detail : New create                                                        */
+/* Date   : 2010/08/22                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* input  : char *in_file     : input  filename                               */
+/*          char *out_file    : output filename                               */
+/*                                                                            */
+/* output : int : normal terminate : 0  error : -1                            */
+/*                                                                            */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/******************************************************************************/
+int filecopy( char *in_file, char *out_file ){
+
+	FILE *in_fp;				/* File pointer of input      */
+	FILE *out_fp;				/* File pointer of output     */
+
+	char in_char;				/* Input character            */
+
+						/* Input file open            */
+	in_fp = fopen( in_file, "r" );
+	if( in_fp == NULL ){
+						/* Case of error              */
+		fprintf( stderr, "Can not open %s.\n", in_file );
+		return(-1);
+	}
+
+						/* Output file open           */
+	out_fp = fopen( out_file, "w" );
+	if( out_fp == NULL ){
+						/* Case of error              */
+		fprintf( stderr, "Can not open %s.\n", out_file );
+
+		fclose( in_fp );
+		return(-1);
+	}
+						/* Get a character            */
+	in_char = fgetc( in_fp );
+	while( in_char != EOF ){
+						/* Put a character            */
+		fputc( in_char, out_fp );
+						/* Get a next character       */
+		in_char = fgetc( in_fp );
+	}
+
+						/* File close                 */
+	fclose( in_fp );
+	fclose( out_fp );
+						/* Normal return              */
+	return(0);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of main                                                  */
+/* Function Name : main                                                       */
+/*                                                                            */
+/* Detail : New create                                                        */
+/* Date   : 2010/08/04                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+int main( int argc, char *argv[] ){
+
+	FILE *in_fp;				/* File pointer for input     */
+	FILE *out_fp;				/* File pointer for output    */
+
+	long page_no;				/* Page number                */
+
+	int in_char;				/* Input character            */
+	int ret;				/* Return value               */
+	int cnt;				/* General porposes counter   */
+
+	long sequence_cnt;			/* Counter of sequence        */
+
+	long column_cnt;			/* Counter of column number   */
+	long column_last;			/* Stored number of column    */
+
+	long page_row_cnt;			/* Counter of row number      */
+						/*                  in page   */
+	long orf_cur_cnt;			/* Counter of                 */
+						/*    orf cursor number       */
+	long motif_cur_cnt;			/* Counter of                 */
+						/*  motif cursor number       */
+
+	long split_num;				/* Number of split            */
+
+	long header_line_num;			/* Number of line             */
+						/*            of header file  */
+	long footer_line_num;			/* Number of line             */
+						/*            of footer file  */
+
+	int in_orf_flg;				/* Flag of orf now            */
+	int in_motif_flg;			/* Flag of motif now          */
+
+	long s_orf_buf[CURSOR_BUFFER];		/* Buffer of s column         */
+						/*           from PredictGene */
+	long e_orf_buf[CURSOR_BUFFER];		/* Buffer of e column         */
+						/*           from PredictGene */
+
+	long s_motif_buf[CURSOR_BUFFER];	/* Buffer of s column from DB */
+						/*           from fmotif      */
+	long e_motif_buf[CURSOR_BUFFER];	/* Buffer of e column from DB */
+						/*           from fmotif      */
+
+	char filename[BUFFER_SIZE];		/* Buffer of file name        */
+
+
+						/* Connect to DB              */
+	EXEC SQL WHENEVER SQLERROR STOP;
+	EXEC SQL CONNECT TO "DATA-BASE NAME" AS bibase
+			USER "USER-NAME" USING "PASSWORD";
+
+						/* Declare arrays             */
+	EXEC SQL BEGIN DECLARE SECTION;
+
+		long s_orf;			/* For s column               */
+						/*           from PredictGene */
+		long e_orf;			/* For e column               */
+						/*           from PredictGene */
+
+		long s_motif;			/* For s column               */
+						/*           from fmotif      */
+		long e_motif;			/* For e column               */
+						/*           from fmotif      */
+
+		char asgn_reverse;		/* reverse column             */
+						/*  for assign to PredictGene */
+		char asgn_amino_acid;		/* amino_acid column          */
+						/*  for assign to PredictGene */
+		int asgn_shift_num;		/* shift_num column           */
+						/*  for assign to PredictGene */
+
+		char asgn_sequence[BUFFER_SIZE];
+						/* sequence column            */
+						/*  for assign to fmotif      */
+
+		int asgn_lmer;			/* lmer for assign to fmotif  */
+		int asgn_count;			/* count for assign to fmotif */
+		char asgn_nc[20];		/* number of nc               */
+		int asgn_len;			/* length of sequence         */
+
+	EXEC SQL END DECLARE SECTION;
+
+						/* Initiarize value           */
+	in_fp = NULL;
+
+	asgn_reverse = PGTRUE;			/* Set reverse number         */
+	asgn_amino_acid = PGFALSE;		/* Set amino_acid number      */
+	asgn_shift_num = 1;			/* Set shift_num ber          */
+	asgn_lmer = 0;				/* Init lmer                  */
+	asgn_count = 0;				/* Init count                 */
+	asgn_nc[0] = '\0';			/* Init NC_ number            */
+	asgn_len = 100;				/* Init length of sequence    */
+
+						/* Get argumnets              */
+	if( argc > 1 ){
+
+		for( cnt = 1; cnt < argc; cnt++ ){
+
+			if( strcmp( argv[cnt], "-h" ) == 0 ){
+
+						/* Output Help                */
+				printf(" Usage : formatDNA [option]\n");
+				printf("option :\n");
+				printf(" -f   filename : Input file");
+				printf(" - default stdin\n");
+				printf(" -lmer  number :");
+				printf(" Integer number of lmer");
+				printf(" for motif - default 0\n");
+				printf(" -count number :");
+				printf(" Integer number of count");
+				printf(" for count - default 0\n");
+				printf(" -nc number :");
+				printf(" Number of NC_\n");
+				printf(" -len number :");
+				printf(" Length of sequence\n\n");
+
+				exit(0);
+
+			}else if( strcmp( argv[cnt], "-f" ) == 0 ){
+
+						/* File open                  */
+				in_fp = fopen( argv[cnt + 1], "r" );
+				if( in_fp == NULL ){
+						/* Case of error              */
+					fprintf(stderr,
+						"input file[%s] not found.\n",
+						argv[cnt + 1]
+					);
+					exit(-1);
+				}
+
+				cnt++;
+
+			}else if( strcmp( argv[cnt], "-lmer" ) == 0 ){
+						/* Set lmer                   */
+				asgn_lmer = atoi( argv[cnt + 1] );
+				cnt++;
+
+			}else if( strcmp( argv[cnt], "-count" ) == 0){
+						/* Set count                  */
+				asgn_count = atoi( argv[cnt + 1] );
+				cnt++;
+
+			}else if( strcmp( argv[cnt], "-nc" ) == 0 ){
+						/* Set NC_ number             */
+				strcpy( asgn_nc, argv[cnt + 1] );
+				cnt++;
+
+			}else if( strcmp( argv[cnt], "-len" ) == 0 ){
+						/* Set NC_ number             */
+				asgn_len = atoi( argv[cnt + 1] );
+				cnt++;
+			}
+		}
+	}
+
+	if( in_fp == NULL ){
+						/* Case of standard input     */
+		in_fp = stdin;
+	}
+
+						/* Declare cursor             */
+	EXEC SQL DECLARE orf_cur CURSOR FOR
+/* for Discovered Gene */
+		SELECT	s,
+			e
+		  FROM	Discovered_Gene
+		 WHERE	nc = :asgn_nc
+		ORDER BY s ASC;
+
+/* for GeneMarkHmm26m
+		SELECT	leftend,
+			rightend
+		  FROM	GeneMarkHmm26m
+		ORDER BY leftend ASC;
+*/
+
+/* for PredictGene
+		SELECT	case when reverse=false then s else e end s,
+			case when reverse=false then e else s end e
+		  FROM	PredictGene
+		 WHERE	amino_acid = :asgn_amino_acid
+		   AND	char_length(sequence) >= :asgn_len
+		   AND  nc = :asgn_nc
+		ORDER BY s ASC;
+*/
+
+		 // WHERE	lmer = :asgn_lmer
+		 //   AND	char_length(sequence) = :asgn_len
+
+	EXEC SQL DECLARE motif_cur CURSOR FOR
+
+		SELECT	s,
+			e
+		  FROM	fmotif
+		 WHERE	lmer in (9,10)
+		   AND  nc = :asgn_nc
+		   AND	count >= :asgn_count
+		   AND	sequence in (
+			'TTCAAAACGA',
+			'TTCAAAACG',
+			'TTCAAAACGAT',
+			'TCAAAACGATG',
+			'TCAAAACGAT',
+			'TCAAAACGA',
+			'CAAAACGATGC',
+			'CAAAACGATG',
+			'CAAAACGAT',
+			'AAAACGATGCA',
+			'AAAACGATGC',
+			'AAAACGATG'
+			)
+		ORDER BY s ASC;
+
+	EXEC SQL WHENEVER SQLERROR SQLPRINT;
+
+						/* Cursor open                */
+	EXEC SQL OPEN orf_cur;
+	EXEC SQL OPEN motif_cur;
+						/* Make filename              */
+	page_no = 0;				/* Page number reset          */
+	sprintf( filename, "%s%ld.html", OUTPUT_FILE, page_no );
+						/* Open out put file          */
+	out_fp = fopen( filename, "w" );
+	if( out_fp == NULL ){
+						/* Case of error              */
+		fprintf(stderr,
+			"output file[%s] can not open.\n",
+			filename
+		);
+		exit(-1);
+	}
+
+						/* Put header file            */
+	header_line_num = putFile( HEADER_FILE, out_fp );
+	putDataHeader( out_fp, OUTPUT_FILE, page_no, COLUMN_LIMIT );
+
+						/* Initialize values          */
+
+	column_cnt    =  0;			/* Counter of column number   */
+	column_last   =  0;			/* Stored number of column    */
+
+	orf_cur_cnt   = -1;			/* Counter of                 */
+						/*    orf cursor number       */
+
+	motif_cur_cnt = -1;			/* Counter of                 */
+						/*  motif cursor number       */
+
+	sequence_cnt  =  0;			/* Counter of sequence        */
+	page_row_cnt  =  0;			/* Counter of row number      */
+						/*                 in page    */
+
+						/* Get data from DNA file     */
+	in_char = fgetc( in_fp );
+
+	column_cnt++;
+	sequence_cnt++;
+
+	while( in_char != EOF ){
+						/* Get orf data from DB       */
+		if( (orf_cur_cnt >= CURSOR_BUFFER) || (orf_cur_cnt == -1) ){
+
+			orf_cur_cnt = 0;	/* Reset orf_cur_cnt          */
+						/* Reset s_orf_buf            */
+			bzero( s_orf_buf, CURSOR_BUFFER );
+						/* Reset s_orf_buf            */
+			bzero( e_orf_buf, CURSOR_BUFFER );
+
+			while(LOOP){
+						/* When not found is break    */
+				EXEC SQL WHENEVER NOT FOUND DO BREAK;
+						/* Fetch                      */
+				EXEC SQL FETCH  orf_cur INTO
+					:s_orf, :e_orf;
+
+						/* Set s column to s_buf      */
+				s_orf_buf[orf_cur_cnt] = s_orf;
+						/* Set e column to e_buf      */
+				e_orf_buf[orf_cur_cnt] = e_orf; 
+
+				if( orf_cur_cnt == ( CURSOR_BUFFER - 1 ) ){
+						/* Reaching buffer maximum    */
+					break;
+
+				}else if(
+					s_orf_buf[orf_cur_cnt] < sequence_cnt
+				){
+						/* Fast forward orf_cur_cnt   */
+					continue;
+
+                                }else if(
+					orf_cur_cnt > 0 &&
+					s_orf <= e_orf_buf[orf_cur_cnt - 1]
+				){
+						/* For overlap sequences      */
+					e_orf_buf[orf_cur_cnt - 1] = e_orf;
+
+					printf("s_orf[%d] e_orf[%d] ",
+						s_orf, e_orf);
+					printf("s_orf--[%d] e_orf--[%d]\n",
+						s_orf_buf[orf_cur_cnt-1],
+						e_orf_buf[orf_cur_cnt-1]);
+				}else{
+						/* Still buffer maximum       */
+					orf_cur_cnt++;
+				}
+			}
+						/* Reset orf_cur_cnt          */
+			orf_cur_cnt = 0;
+		}
+
+						/* Get motif data from DB     */
+		if( (motif_cur_cnt >= CURSOR_BUFFER) || (motif_cur_cnt == -1) ){
+
+			motif_cur_cnt = 0;	/* Reset motif_cur_cnt        */
+						/* Reset s_motif_buf          */
+			bzero( s_motif_buf, CURSOR_BUFFER );
+						/* Reset e_motif_buf          */
+			bzero( e_motif_buf, CURSOR_BUFFER );
+
+			while(LOOP){
+						/* When not found is break    */
+				EXEC SQL WHENEVER NOT FOUND DO BREAK;
+						/* Fetch                      */
+				EXEC SQL FETCH  motif_cur INTO
+					:s_motif, :e_motif;
+
+						/* Set s column to s_buf      */
+				s_motif_buf[motif_cur_cnt] = s_motif;
+						/* Set e column to e_buf      */
+				e_motif_buf[motif_cur_cnt] = e_motif; 
+
+				if( motif_cur_cnt == ( CURSOR_BUFFER - 1 ) ){
+						/* Reaching buffer maximum    */
+					break;
+
+				}else if(
+					s_motif_buf[motif_cur_cnt]
+						< sequence_cnt
+				){
+						/* Fast forward motif_cur_cnt */
+					continue;
+				}else{
+						/* Still buffer maximum       */
+					motif_cur_cnt++;
+				}
+			}
+						/* Reset orf_cur_cnt          */
+			motif_cur_cnt = 0;
+		}
+
+						/* Case of start to ORF       */
+		if( s_orf_buf[orf_cur_cnt] == sequence_cnt ){
+						/* Output html tag            */
+			fprintf( out_fp, "<span class=orf>" );
+						/* Flag ON                    */
+			in_orf_flg = ON;
+		}
+
+						/* Case of start to MOTIF     */
+		if( s_motif_buf[motif_cur_cnt] == sequence_cnt ){
+
+						/* if motif element over      */
+						/*  end of orf ending element */
+			if( in_orf_flg == ON &&
+				(e_motif_buf[motif_cur_cnt]
+					> e_orf_buf[orf_cur_cnt]) ){
+
+						/* then end to orf element    */
+				fprintf( out_fp, "</span>" );
+				in_orf_flg = OFF;
+			}
+						/* Output html tag            */
+			fprintf( out_fp, "<span class=motif>" );
+						/* Flag ON                    */
+			in_motif_flg = ON;
+		}
+
+		switch( in_char ){
+						/* Adenine                    */
+			case 'A':
+			case 'a':
+						/* Output html tag            */
+				fprintf(out_fp,
+					"<span class=adenine>A</span>"
+				);
+				break;
+
+						/* Thymine                    */
+			case 'T':
+			case 't':
+						/* Output html tag            */
+				fprintf(out_fp,
+					"<span class=thymine>T</span>"
+				);
+				break;
+
+						/* Guanine                    */
+			case 'G':
+			case 'g':
+						/* Output html tag            */
+				fprintf(out_fp,
+					"<span class=guanine>G</span>"
+				);
+				break;
+
+						/* Cytosine                   */
+			case 'C':
+			case 'c':
+						/* Output html tag            */
+				fprintf(out_fp,
+					"<span class=cytosine>C</span>"
+				);
+				break;
+
+			default:
+				break;
+		}
+
+						/* Case of end to orf         */
+		if( e_orf_buf[orf_cur_cnt] == sequence_cnt ){
+						/* Output html tag            */
+			if( in_orf_flg == ON ){
+				fprintf( out_fp, "</span>");
+			}
+						/* Increment curosor_cnt      */
+			orf_cur_cnt++;
+						/* ORF flag OFF               */
+			in_orf_flg = OFF;
+
+						/* Fast forward orf_cur_cnt   */
+			while( orf_cur_cnt < CURSOR_BUFFER ){
+
+				if( s_orf_buf[orf_cur_cnt] > sequence_cnt ){
+						/* Reached sequence cnt       */
+					break;
+				}
+						/* Increment curosor_cnt      */
+				orf_cur_cnt++;
+			}
+		}
+
+						/* Case of end to motif       */
+		if( e_motif_buf[motif_cur_cnt] == sequence_cnt ){
+						/* Output html tag            */
+			fprintf( out_fp, "</span>");
+						/* Increment curosor_cnt      */
+			motif_cur_cnt++;
+						/* ORF flag OFF               */
+			in_motif_flg = OFF;
+
+						/* Fast forward orf_cur_cnt   */
+			while( motif_cur_cnt < CURSOR_BUFFER ){
+
+				if( s_motif_buf[motif_cur_cnt] > sequence_cnt ){
+						/* Reached sequence cnt       */
+					break;
+				}
+						/* Increment curosor_cnt      */
+				motif_cur_cnt++;
+			}
+		}
+
+						/* Case of end of line        */
+		if( column_cnt == COLUMN_LIMIT ){
+
+						/* Case of ORF now            */
+			if( in_orf_flg == ON ){
+						/* Output html tag            */
+				fprintf( out_fp, "</span>");
+			}
+
+						/* Case of MOTIF now          */
+			if( in_motif_flg == ON ){
+						/* Output html tag            */
+				fprintf( out_fp, "</span>");
+			}
+
+						/* Store column_cnt           */
+			column_last += column_cnt;
+
+						/* Output html tag            */
+						/*         and column number  */
+			fprintf( out_fp, " %ld<br>\n", column_last );
+
+						/* Reset column_cnt           */
+			column_cnt = 0;
+
+						/* Page row increment         */
+			page_row_cnt++;
+
+						/* Reaching row maximum       */
+						/*                  in page   */
+			if( page_row_cnt == PAGE_ROW_LIMIT ){
+
+				putDataHeader(
+					out_fp,
+					OUTPUT_FILE,
+					page_no,
+					COLUMN_LIMIT
+				);
+						/* Output footer file         */
+				footer_line_num = putFile(
+					FOOTER_FILE,
+					out_fp
+				);
+
+						/* Set split number           */
+				split_num = header_line_num
+					  + page_row_cnt
+					  + footer_line_num;
+
+						/* Output split text          */
+				fprintf(out_fp,
+					"<!-- Cut off line ex.split -%ld -->",
+					split_num + 1
+				);
+				fprintf( out_fp, "<br>\n");
+
+						/* Reset page_row_cnt         */
+				page_row_cnt = 0;
+
+						/* Close out put file         */
+				fclose( out_fp );
+
+						/* Make filename              */
+				page_no++;
+				sprintf(filename,
+					"%s%ld.html",
+					OUTPUT_FILE,
+					page_no
+				);
+						/* Open out put file          */
+				out_fp = fopen( filename, "w" );
+				if( out_fp == NULL ){
+						/* Case of error              */
+					fprintf(stderr,
+						"output file[%s] can't open.\n",
+						filename
+					);
+					exit(-1);
+				}
+						/* Output header file         */
+				header_line_num = putFile(
+					HEADER_FILE,
+					out_fp
+				);
+
+				putDataHeader(
+					out_fp,
+					OUTPUT_FILE,
+					page_no,
+					COLUMN_LIMIT
+				);
+
+			}else if( (page_row_cnt % TERM_OF_HEADER) == 0 ){
+
+				fprintf( out_fp, "<br>\n");
+				putDataHeader(
+					out_fp,
+					OUTPUT_FILE,
+					page_no,
+					COLUMN_LIMIT
+				);
+			}
+						/* Case of ORF now            */
+			if( in_orf_flg == ON ){
+						/* Output html tag            */
+				fprintf( out_fp, "<span class=orf>");
+			}
+
+						/* Case of MOTIF now          */
+			if( in_motif_flg == ON ){
+						/* Output html tag            */
+				fprintf( out_fp, "<span class=motif>");
+			}
+		}
+						/* Get next sequence          */
+		in_char = fgetc( in_fp );
+						/* increment counter          */
+		column_cnt++;
+		sequence_cnt++;
+	}
+
+						/* Cursor close               */
+	EXEC SQL CLOSE orf_cur;
+	EXEC SQL CLOSE motif_cur;
+						/* Disconnect DB              */
+	EXEC SQL DISCONNECT bibase;
+						/* Output last footer         */
+	footer_line_num = putFile( FOOTER_FILE, out_fp );
+
+						/* Close out put file         */
+	fclose(out_fp);
+						/* Case of not stdin          */
+	if( argc == 2 ){
+		fclose(in_fp);
+	}
+
+	page_no++;
+	ret = putIndex( OUTPUT_FILE, page_no, PAGE_ROW_LIMIT, COLUMN_LIMIT );
+	if( ret != 0 ){
+		fprintf( stderr, "Fail, Make a index file.\n" );
+		exit(-1);
+	}
+
+	sprintf( filename, "%s%ld.html", OUTPUT_FILE, page_no );
+	ret = filecopy( filename, "index.html" );
+	if( ret != 0 ){ 
+		fprintf(stderr,
+			"Fail, Copy to %s from %s.",
+			INDEX_FILE,
+			filename
+		);
+		exit(-1);
+	}
+						/* Exit program               */
+	exit(0);
+}
