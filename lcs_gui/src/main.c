@@ -180,6 +180,10 @@ GtkWidget *d_num_spin;
 GtkWidget *match_num_spin;
 					/* Unmatch number                     */
 GtkWidget *unmatch_num_spin;
+					/* Threshold number for matrix        */
+GtkWidget *threshold_num_vscale;
+					/* Continuity number for matrix       */
+GtkWidget *continuity_num_vscale;
 					/* For affine gap number              */
 GtkAdjustment *adjustment1;
 					/* For Liner gap number               */
@@ -188,6 +192,10 @@ GtkAdjustment *adjustment2;
 GtkAdjustment *adjustment3;
 					/* For Unmatch number                 */
 GtkAdjustment *adjustment4;
+					/* For Threshld number for matrix     */
+GtkAdjustment *adjustment5;
+					/* For Continuity number for matrix   */
+GtkAdjustment *adjustment6;
 					/* For matrix                         */
 GtkWidget *drawingArea1;
 GdkPixmap *pmap = NULL;
@@ -348,6 +356,17 @@ create_window (	void )
 	unmatch_num_spin = GTK_WIDGET (
 	        gtk_builder_get_object (builder, "unmatch_num")
 	);
+					/* Get threshold_num_vscale object    */
+	threshold_num_vscale = GTK_WIDGET (
+		gtk_builder_get_object (builder, "thresholdvscale" )
+	);
+					/* Get continuity_num_vscale object   */
+	continuity_num_vscale = GTK_WIDGET (
+		gtk_builder_get_object (builder, "continuityvscale" )
+	);
+					/* Threshold vscale un sensitive      */
+	//gtk_widget_set_sensitive( GTK_WIDGET( threshold_num_vscale ), FALSE );
+
 					/* Get adjustment1 object             */
 	adjustment1 = GTK_ADJUSTMENT (
 	        gtk_builder_get_object (builder, "adjustment1")
@@ -364,20 +383,48 @@ create_window (	void )
 	adjustment4 = GTK_ADJUSTMENT (
 	        gtk_builder_get_object (builder, "adjustment4")
 	);
+					/* Get adjustment5 object             */
+	adjustment5 = GTK_ADJUSTMENT (
+	        gtk_builder_get_object (builder, "adjustment5")
+	);
+					/* Get adjustment6 object             */
+	adjustment6 = GTK_ADJUSTMENT (
+	        gtk_builder_get_object (builder, "adjustment6")
+	);
 					/* Set object to callback area too    */
 	set_objects_to_callback_area( GTK_BUILDER(builder) );
 					/* Set value to spin button e_num     */
-	gtk_spin_button_set_value( GTK_SPIN_BUTTON( e_num_spin ), (gdouble)5 );
+	gtk_spin_button_set_value(
+		GTK_SPIN_BUTTON( e_num_spin ),
+		(gdouble)DEF_E_NUM
+	);
 					/* Set value to spin button d_num     */
-	gtk_spin_button_set_value( GTK_SPIN_BUTTON( d_num_spin ), (gdouble)10 );
+	gtk_spin_button_set_value(
+		GTK_SPIN_BUTTON( d_num_spin ),
+		(gdouble)DEF_D_NUM
+	);
 					/* Set value to spin button match_num */
 	gtk_spin_button_set_value(
-		GTK_SPIN_BUTTON( match_num_spin ), (gdouble)10
+		GTK_SPIN_BUTTON( match_num_spin ),
+		(gdouble)DEF_MATCH_NUM
 	);
 					/* Set value to spin button           */
 					/*                      unmatch_num   */
 	gtk_spin_button_set_value(
-	        GTK_SPIN_BUTTON( unmatch_num_spin ), (gdouble)0
+		GTK_SPIN_BUTTON( unmatch_num_spin ),
+		(gdouble)DEF_UNMATCH_NUM
+	);
+					/* Set value to adjustment            */
+					/*        threshold number for matrix */
+	gtk_adjustment_set_value(
+	    GTK_ADJUSTMENT( adjustment5 ),
+	    MATRIXTHRESHOLD
+	);
+					/* Set value to adjustment            */
+					/*       continuity number for matrix */
+	gtk_adjustment_set_value(
+	    GTK_ADJUSTMENT( adjustment6 ),
+	    MATRIXCONTINUITY
 	);
 					/* TextBuffer get from textview1      */
 	textbuf1 = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview1) );
@@ -1398,12 +1445,12 @@ int PrintOutForTextView(
 	char  *stored_gap;
 	char  *stored_ans;
 	char **stored_eg;
-	char **stored_ss;
+	long **stored_ss;
 	char **stored_bp;
 						/* Color for background      */
 	GdkColor color;
 
-						/* Enter threads (GTK lock)  */
+						/* Enter Gtk threads         */
 	gdk_threads_enter();
 
 	int disp_flg = ANS_DISP_FLG | V_DISP_FLG | GAP_DISP_FLG | W_DISP_FLG;
@@ -1685,7 +1732,6 @@ int PrintOutForTextView(
 			);	
 		}
 	}
-
 						/* Output of report           */
 
 						/* Calculate digit            */
@@ -1819,7 +1865,7 @@ int PrintOutForTextView(
 		}
 	}
 						/* Copy to stored buffer from */
-						/* calculated similary score  */
+						/* calculated similarly score */
 	for( i = 0; i < inum; i++ ){
 		for( j = 0; j < jnum; j++ ){
 			stored_ss[i][j] = ss[i][j];
@@ -1836,6 +1882,8 @@ int PrintOutForTextView(
 						/* Set stored arrary pointer  */
 						/*     to scope in callback.c */
 	ret = set_ans_str(
+		&v,
+		&w,
 		&stored_v,
 	        &stored_w,
 	        &stored_gap,
@@ -1857,8 +1905,9 @@ int PrintOutForTextView(
 
 						/* Put identify rate          */
 	sprintf(buf,
-		"ID %.0f\%(%ld)",
+		"ID %.0f%c(%ld)",
 	        ident_rate * 100,
+		'%',
 	        ident_cnt
 	);
 	gtk_label_set_text( GTK_LABEL(Rate_label), buf );
@@ -1869,7 +1918,7 @@ int PrintOutForTextView(
 
 						/* Resize drawing area        */
 	gtk_drawing_area_size(
-		drawingArea1,
+		GTK_DRAWING_AREA(drawingArea1),
 		(gint)inum + 50,
 		(gint)jnum + 50
 	);
@@ -1898,8 +1947,11 @@ int PrintOutForTextView(
 	ret = draw_matrix( &pmap );
 						/* Request draw               */
 	gtk_widget_queue_draw( drawingArea1 );
+						/* Threshold vscale sensitie  */
+	//gtk_widget_set_sensitive( GTK_WIDGET( threshold_num_vscale ), TRUE );
 
-						/* Threads leave(GTK unlock)  */
+						/* Leave Gtk threads          */
+	gdk_flush();
 	gdk_threads_leave();
 	
 	return(0);
@@ -1930,10 +1982,7 @@ int PrintOutForTextView(
 /*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
 /******************************************************************************/
 
-int
-main (int argc, char *argv[])
-{					/* Threads leave                      */
-		//dk_threads_leave();
+int main (int argc, char *argv[]){
 
 					/* Pointer of window                  */
  	GtkWidget *window;

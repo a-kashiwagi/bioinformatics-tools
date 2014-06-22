@@ -27,7 +27,8 @@ EXTRA_DIST = $(lcs_doc_DATA) \
 	manual/lcs/C/figures/lcs_chromatography.gif \
 	manual/lcs/C/figures/lcs_chromatography_nuc.gif \
 	manual/lcs/C/figures/lcs_report.gif \
-	manual/lcs/C/figures/lcs_matrix.gif
+	manual/lcs/C/figures/lcs_matrix.gif \
+	manual/lcs/C/figures/MG235-1xp3a_ts3_cn4.gif
 
 DISTCLEANFILES = intltool-extract \
 	intltool-merge \

@@ -255,13 +255,13 @@ int cui_main( int argc, char *argv[] ){
 		fprintf(stderr, "  -lg  : Liner gap  score - default\n");
 		fprintf(stderr, "  -ag  : Affine gap score\n");
 		fprintf(stderr, "  -mn number : Integer number of");
-		fprintf(stderr, " match - default 10\n");
+		fprintf(stderr, " match - default %d\n",DEF_MATCH_NUM);
 		fprintf(stderr, "  -un number : Integer number of");
-		fprintf(stderr, " unmatch - default -10\n");
+		fprintf(stderr, " unmatch - default %d\n",DEF_UNMATCH_NUM);
 		fprintf(stderr, "  -dn number : Integer number of");
-		fprintf(stderr, " gap penalry - default 10\n");
+		fprintf(stderr, " gap penalry - default %d\n",DEF_D_NUM);
 		fprintf(stderr, "  -en number : Integer number of");
-		fprintf(stderr, " affine gap penalry - default 5\n");
+		fprintf(stderr, " affine gap penalry - default %d\n",DEF_E_NUM);
 		fprintf(stderr, "\n");
 		exit(1);
 						/* Error terminate            */
@@ -279,12 +279,12 @@ int cui_main( int argc, char *argv[] ){
 						/* Sequence mode              */
 	sequence_mode = PARTOFSEQUENCE;
 						/* Set default number         */
-	match_num = 10;				/* Number of match            */
-	unmatch_num = -10;			/* Number of unmatch          */
-	d_num = 10;				/* Number of gap penalty      */
-	e_num = 5;				/* Nubmer of                  */
+	match_num = DEF_MATCH_NUM;		/* Number of match            */
+	unmatch_num = DEF_UNMATCH_NUM;		/* Number of unmatch          */
+	d_num = DEF_D_NUM;			/* Number of gap penalty      */
+	e_num = DEF_E_NUM;			/* Nubmer of                  */
 						/*     affine gap penalty     */
-	rs_num = 10;				/* Number of Replace score    */
+	rs_num = DEF_RS_NUM;			/* Number of Replace score    */
 						/*    amplification           */
 
 						/* Set argument counter       */
@@ -557,6 +557,41 @@ int lcs(
 						/*          TRNS structure    */
 	double hmm_num;				/* HMM number                 */
 
+#ifdef DEBUG
+	// debug write
+	printf("In lcs(\n");
+	printf("\tv[%s],\n",v);
+	printf("\tw[%s],\n",w);
+	printf("\tinum[%ld],\n",inum);
+	printf("\tjnum[%ld]\n",jnum);
+	printf(")\n");
+
+	printf("Other parameters.\n");
+	printf( "%d," \
+		"alignment_mode[%d]," \
+		"gapscore_mode[%d]," \
+		"scan_mode[%d]," \
+		"compare_mode[%d]," \
+		"sequence_mode[%d],\n" \
+		"match_num[%d]," \
+		"unmatch_num[%d]," \
+		"d_num[%d]," \
+		"e_num[%d]," \
+		"rs_num[%d]\n",
+		0,
+		alignment_mode,
+		gapscore_mode,
+		scan_mode,
+		compare_mode,
+		sequence_mode,
+		match_num,
+		unmatch_num,
+		d_num,
+		e_num,
+		rs_num
+	);
+#endif
+
 						/* Case of Amino Acid mode    */
 						/*      or Protein mode       */
 	if( compare_mode == AMINOACID ){
@@ -570,6 +605,11 @@ int lcs(
 	}
 						/* Case of all sequence mode  */
 	if( sequence_mode == ALLSEQUENCE ){
+
+#ifdef DEBUG
+	// debug write
+	fprintf( stderr, "In All sequence mode\n");
+#endif
 						/*   (+ 2) mean               */
 						/*   Header of space and      */
 						/*   Footer of NULL.          */
@@ -613,11 +653,21 @@ int lcs(
 		return(0);
 	}
 
+#ifdef DEBUG
+	// debug write
+	fprintf( stderr, "In Part of sequence mode\n");
+#endif
+
 						/* From here is case of       */
 						/* part of sequence mode      */
 
 						/* Scan by Hidden Markov Model*/
 	if( scan_mode == HMMSCAN ){
+
+#ifdef DEBUG
+	// debug write
+	fprintf( stderr, "In hmm scan mode\n");
+#endif
 						/* Set alignment mode for hmm */
 		init_hmm_procedure( alignment_mode );
 
@@ -732,6 +782,11 @@ int lcs(
 	    					/*         is end of here     */
 	    	return(0);
 	}
+
+#ifdef DEBUG
+	// debug write
+	fprintf( stderr, "In identify mode\n");
+#endif
     
 						/* Check for matches          */
 						/*  by shift of v             */
@@ -856,8 +911,8 @@ int lcs(
 		w_lc_to
 	);
 						/* Free target sequence       */
-	free(target_v_sequence);
-	free(target_w_sequence);
+	//free(target_v_sequence);
+	//free(target_w_sequence);
 						/* v_ans, w_ans, bp_arr       */
 	return(0);
 }
@@ -959,6 +1014,19 @@ int Procedure(
 	double ident_rate;			/* Rate of Identify number   */
 	long score;				/* Score from blosum         */
 	
+#ifdef DEBUG
+	// debug write
+	printf("In Procedure(\n");
+	printf("\tv[%s]\n",v);
+	printf("\tinum[%ld]\n",inum);
+	printf("\tw[%s]\n",w);
+	printf("\tjnum[%ld]\n",jnum);
+	printf("\tv_lc_from[%ld]\n",v_lc_from);
+	printf("\tv_lc_from[%ld]\n",v_lc_to);
+	printf("\tw_lc_from[%ld]\n",w_lc_from);
+	printf("\tw_lc_to[%ld]\n",w_lc_to);
+	printf(")\n");
+#endif
 						/* Memory allocate            */
 						/*    of Edit Graph           */
 	eg = malloc( sizeof(char *) * inum );
@@ -1007,6 +1075,11 @@ int Procedure(
 						/* v_ans, w_ans, ans, bp_arr */
 	if( alignment_mode == GLOBAL_ALIGNMENT ){
 
+#ifdef DEBUG
+	// debug write
+	fprintf( stderr, "In global alignment mode\n");
+#endif
+
 		v_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		w_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		ans    = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
@@ -1024,6 +1097,12 @@ int Procedure(
 		memset( bp_arr,'\0', (sizeof(char) * (inum + jnum)) + 1 );
 
 	}else{
+
+#ifdef DEBUG
+	// debug write
+	fprintf( stderr, "In local alignment mode\n");
+#endif
+
 		v_ans  = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
@@ -1129,12 +1208,27 @@ int Procedure(
 	ident_rate = (double)ident_cnt / (double)bpnum;
 
 	if( alignment_mode == GLOBAL_ALIGNMENT ){
-						/* Get global similary score */
+						/* Get global similarly score*/
 		score = ss[inum - 1][jnum - 1];
 	}else{
-						/* Get local similary score  */
+						/* Get local similarly score */
 		score = ss[local_inum - 1][local_jnum - 1];
 	}
+
+#ifdef DEBUG
+	printf("v_ans[%s]\n",&v_ans[1]);
+	printf("w_ans[%s]\n",&w_ans[1]);
+	printf("ans[%s]\n",&ans[1]);
+	printf("eg_arr[%s]\n",&eg_arr[1]);
+
+	printf("ss_arr[");
+	for( cnt = 0; cnt < ssnum; cnt++){
+		printf("%ld,",cnt);
+	}
+	printf("]\n");
+
+	printf("bp_arr[%s]\n",&bp_arr[1]);
+#endif
 						/* Print out                 */	
 	if( output_mode == CUI_MODE ){
 
@@ -1149,8 +1243,8 @@ int Procedure(
 			w_lc_from, w_lc_to,
 		        ident_cnt, ident_rate, score
 		);
-	}else{
-		ret = PrintOutForTextView(
+	}else{	    	    
+	        ret = PrintOutForTextView(
 			v, w,
 			eg, ss, bp,
 			v_ans, w_ans, ans, eg_arr, ss_arr, bp_arr,
@@ -1550,6 +1644,22 @@ int WeightingForAminoAcid(
 
 	int  cnt;				/* Loop counter               */
 
+#ifdef DEBUG
+    	// debug write
+	fprintf(
+	    stderr,
+	    "In WeightingForAminoAcid(%ld,%ld,[%s],[%s],%x)\n",
+	    inum,
+	    jnum,
+	    v,
+	    w,
+	    eg
+	);
+
+	fprintf( stderr, "match_num=%ld\n",match_num);
+	fprintf( stderr, "unmatch_num=%ld\n",unmatch_num);
+#endif
+    
 	for( i = 1; i < inum; i++ ){
 	
 		for( j = 1; j < jnum; j++ ){
@@ -1622,6 +1732,22 @@ int WeightingForNucleotide(
 	long i;					/* Loop counter i             */
 	long j;					/* Loop counter j             */
 
+#ifdef DEBUG
+    	// debug write
+	fprintf(
+	    stderr,
+	    "In WeightingForNucleotide(%ld,%ld,[%s],[%s],%x)\n",
+	    inum,
+	    jnum,
+	    v,
+	    w,
+	    eg
+	);
+
+	fprintf( stderr, "match_num=%ld\n",match_num);
+	fprintf( stderr, "unmatch_num=%ld\n",unmatch_num);
+#endif
+    
 	for( i = 1; i < inum; i++ ){
 	
 		for( j = 1; j < jnum; j++ ){
@@ -1695,7 +1821,7 @@ long Matches( long inum, long jnum, char *v, char *w ){
 
 /******************************************************************************/
 /*                                                                            */
-/* Title  : Global similary score function                                    */
+/* Title  : Global similarly score function                                   */
 /* Function Name : GlobalSimilaryScore                                        */
 /*                                                                            */
 /* Detail :                                                                   */
@@ -1737,6 +1863,18 @@ int GlobalSimilaryScore(
 	long del_num;				/* Number of deletion         */
 	long ins_num;				/* Number of insertion        */
 	long mch_num;				/* Number of mach             */
+
+#ifdef DEBUG
+	// debug write
+	if( gapscore_mode == AFFINE_GAP_SCORE ){
+		fprintf( stderr, "In affine gap score mode: ");
+		fprintf( stderr, "d_num=%ld,", d_num );
+		fprintf( stderr, "e_num=%ld\n", e_num );
+	}else{
+		fprintf( stderr, "In liner gap score mode: ");
+		fprintf( stderr, "d_num=%ld\n", d_num );
+	}
+#endif
 
 	for( i = 0; i < inum; i++ ){
 		ss[i][0] = 0;			/* Initialize i,0             */
@@ -1803,7 +1941,7 @@ int GlobalSimilaryScore(
 
 /******************************************************************************/
 /*                                                                            */
-/* Title  : Local similary score function                                     */
+/* Title  : Local similarly score function                                    */
 /* Function Name : LocalSimilaryScore                                         */
 /*                                                                            */
 /* Detail :                                                                   */
@@ -1854,6 +1992,18 @@ int LocalSimilaryScore(
 	long ins_num;				/* Number of insertion        */
 	long mch_num;				/* Number of mach             */
 	
+#ifdef DEBUG
+	// debug write
+	if( gapscore_mode == AFFINE_GAP_SCORE ){
+		fprintf( stderr, "In affine gap score mode: ");
+		fprintf( stderr, "d_num=%ld,", d_num );
+		fprintf( stderr, "e_num=%ld\n", e_num );
+	}else{
+		fprintf( stderr, "In liner gap score mode: ");
+		fprintf( stderr, "d_num=%ld\n", d_num );
+	}
+#endif
+
 	for( i = 0; i < inum; i++ ){
 		ss[i][0] = 0;			/* Initialize i,0             */
 	}
@@ -1870,7 +2020,6 @@ int LocalSimilaryScore(
 	for( i = 1; i < inum; i++ ){
 
 		for( j = 1; j < jnum; j++ ){
-
 						/* Calculat to score          */
 
 			if( ( bp[i-1][j] == '|' )

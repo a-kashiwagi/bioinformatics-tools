@@ -253,7 +253,7 @@
 <title>Common</title>
  <screenshot>
   <mediaobject>
-   <imageobject><imagedata fileref="figures/lcs_window.gif" format="GIF"/></imageobject>
+   <imageobject><imagedata fileref="figures/lcs_chromatography.gif" format="GIF"/></imageobject>
    <textobject> <phrase>Shows lcs common.</phrase></textobject>
   </mediaobject>
  </screenshot>
@@ -316,7 +316,7 @@
 </sect1>
 <sect1 id="lcs-matrix">
 <title>Matrix</title>
-<para>  Matrix is display to an allocated sequence by a dot matrix plot(harr plot). Dot is a plus number of allocated.</para>
+<para>  Matrix is display to an allocated sequence by a dot matrix plot(harr plot). It is displayed numbers of a Edit Graph.</para>
 <figure id="matrix">
 <title>Matrix</title>
  <screenshot>
@@ -326,7 +326,18 @@
   </mediaobject>
  </screenshot>
 </figure>
-<para>  X axis is a source sequence. Y axis is a target sequence.</para>
+<para>  X axis is a source sequence. Y axis is a target sequence. A under right side scales were a threshold number and a continuity number. A left scale is threshold nubmer, a rigth scale is continuity nubmer. A threshold number is mask to less than this nubmer. A continuity number is a dots of continuity number.</para>
+<para>  Following is example, threshold number = 3, continuity nubmer = 4.</para>
+<figure id="matrix-ts3cn4">
+<title>Matrix threshold number = 3, continuity number = 4</title>
+ <screenshot>
+  <mediaobject>
+   <imageobject><imagedata fileref="figures/MG235-1xp3a_ts3_cn4.gif" format="GIF"/></imageobject>
+   <textobject> <phrase>Shows lcs tab.matrix.ts4cn4</phrase></textobject>
+  </mediaobject>
+ </screenshot>
+</figure>
+<para>  A high matches and a continuity sequence to rise to the surface.</para>
 </sect1>
 <sect1 id="lcs-commandline-options">
 <title>Commandline options</title>

@@ -39,6 +39,11 @@
 					/* Help file and Command              */
 #define HELPFILE "yelp /usr/share/gnome/help/lcs/C/lcs.xml &"
 
+#define WITHOUTREPORT	0
+					/* Mode of a without report           */
+#define WITHREPORT	1
+					/* Mode of a with report              */
+
 					/* Function declaration               */
 
 					/* Set objects to scope of callback.c */
@@ -55,10 +60,12 @@ long clean_up_sequence( char *sequence );
 int set_ans_str(
         char **v,
         char **w,
+        char **v_ans,
+        char **w_ans,
         char **gap,
         char **ans,
         char ***eg,
-        char ***ss,
+        long ***ss,
         char ***bp,
         long inum,
         long jnum
@@ -96,6 +103,12 @@ void on_gapscoremode0_toggled  (GtkRadioButton *self, gpointer user_data);
 
 					/* Affine gap score                   */
 void on_gapscoremode1_toggled  (GtkRadioButton *self, gpointer user_data);
+
+					/* Threshold v scale                  */
+void on_thresholdvscale_value_changed (GtkVScale *self, gpointer user_data);
+
+					/* Continuity v scale                 */
+void on_continuityvscale_value_changed (GtkVScale *self, gpointer user_data);
 
 					/* Procedure of insert to text buffer */
 void on_textbuf_insert(
@@ -154,7 +167,7 @@ void on_textview2_drag_data_received (
         gpointer user_data
 );
 					/* Get a focusing text view          */
-GtkTextView *FocusingTextView( void );
+GtkTextView *FocusingTextView( int mode );
 
 					/* Procedure of                      */
 					/*         cut,copy,paste and delete */

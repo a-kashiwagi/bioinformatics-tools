@@ -54,36 +54,46 @@
 
 #define BESTHMM			1
 
+#define MATRIXTHRESHOLD		0
+#define MATRIXCONTINUITY	1
+
 						/*   v sequence display flag  */
-#define V_DISP_FLG	1
+#define V_DISP_FLG		1
 
 						/*   w sequence display flag  */
-#define W_DISP_FLG	2
+#define W_DISP_FLG		2
 
 						/* ans sequence display flag  */
-#define ANS_DISP_FLG	4
+#define ANS_DISP_FLG		4
 
 						/* gap sequence display flag  */
-#define GAP_DISP_FLG	8
+#define GAP_DISP_FLG		8
 
 						/* eg  sequence display flag  */
-#define EG_DISP_FLG	16
+#define EG_DISP_FLG		16
 
 						/* ss  sequence display flag  */
-#define SS_DISP_FLG	32
+#define SS_DISP_FLG		32
 
 						/* bp  sequence display flag  */
-#define	BP_DISP_FLG	64
+#define	BP_DISP_FLG		64
 
-#define ON	1
-#define OFF	0
+#define ON			1
+#define OFF			0
 
-#define LOOP	1
+#define LOOP			1
 
 #define BUFFER_SIZE 1024
 #define REPLACESCORE_FILENAME "/etc/blosum62"
 #define REPLACE_NUM 25*25
 
+#define DEF_MATCH_NUM		 10		/* Number of match            */
+#define DEF_UNMATCH_NUM		-10		/* Number of unmatch          */
+#define DEF_D_NUM		 10		/* Number of gap penalty      */
+#define DEF_E_NUM		  5		/* Nubmer of                  */
+						/*     affine gap penalty     */
+#define DEF_RS_NUM		 10		/* Number of Replace score    */
+						/*    amplification           */
 
 						/* Prameter set               */
 int set_lcs_param(

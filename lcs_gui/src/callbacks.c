@@ -98,6 +98,10 @@ GtkWidget *d_num_spin;
 GtkWidget *match_num_spin;
 					/* Unmatch number                     */
 GtkWidget *unmatch_num_spin;
+					/* Threshold number                   */
+GtkWidget *threshold_num_vscale;
+					/* Continuity number                  */
+GtkWidget *continuity_num_vscale;
 					/* Quit button                        */
 GtkWidget *quit_button;
 					/* Excecute button                    */
@@ -110,6 +114,10 @@ GtkAdjustment *adjustment2;
 GtkAdjustment *adjustment3;
 					/* For Unmatch number                 */
 GtkAdjustment *adjustment4;
+					/* For Threshold number for matrix    */
+GtkAdjustment *adjustment5;
+					/* For Continuity number for matrix   */
+GtkAdjustment *adjustment6;
 					/* For matrix                         */
 GtkWidget *drawingArea1;
 					/* For matrix                         */
@@ -130,16 +138,22 @@ int  compare_mode = AMINOACID;
 int  sequence_mode = PARTOFSEQUENCE;
 
 					/* Number of match                    */
-long match_num = 10;
+long match_num = DEF_MATCH_NUM;
 					/* Number of unmatch                  */
-long unmatch_num = 0;
+long unmatch_num = DEF_UNMATCH_NUM;
 					/* Number of gap penalty              */
-long d_num = 10;
+long d_num = DEF_D_NUM;
 					/* Number of                          */
 					/*    affine gap penalty              */
-long e_num = 5;
+long e_num = DEF_E_NUM;
+					/* Number of threshold for matrix     */
+double threshold_num = MATRIXTHRESHOLD;
+					/* Number of continuity for matrix    */
+long continuity_num = MATRIXCONTINUITY;
 					/* Saving flag                        */
 int now_saving;
+					/* Pm drawing flag                    */
+int drawing_pm_flg;
 
 					/* Number of Replace score            */
 					/*    amplification                   */
@@ -158,17 +172,21 @@ char *TargetSequence = NULL;
 					/* Pointer for stored                 */
 
 					/* Sequence v                         */
-char  *stored_v   = NULL;
+char  *stored_v = NULL;
 					/* Sequence w                         */
-char  *stored_w   = NULL;
+char  *stored_w = NULL;
+					/* Sequence v                         */
+char  *stored_v_ans = NULL;
+					/* Sequence w                         */
+char  *stored_w_ans = NULL;
 					/* Sequence gap                       */
 char  *stored_gap = NULL;
 					/* Sequence ans                       */
 char  *stored_ans = NULL;
 					/* Sequence edit graph                */
 char **stored_eg  = NULL;
-					/* Sequence similary score            */
-char **stored_ss  = NULL;
+					/* Sequence similarly score           */
+long **stored_ss  = NULL;
 					/* Sequence back tracking pointer     */
 char **stored_bp  = NULL;
 					/* inum stored                        */
@@ -186,16 +204,22 @@ long stored_jnum;
 /* Author : Akihiro Kashiwagi                                                 */
 /* e-mail : a-kashiwagi@mippi-mail.com                                        */
 /*                                                                            */
-/* Input  : char **v   : Pointer of v   : &(char *v)                          */
-/*          char **w   : Pointer of w   : &(char *w)                          */
+/* Input  : char **v     : Pointer of v : &(char *v)                          */
+/*          char **w     : Pointer of w : &(char *w)                          */
+/*          char **v_ans : Pointer of v : &(char *v_ans)                      */
+/*          char **w_ans : Pointer of w : &(char *w_ans)                      */
 /*          char **gap : Pointer of gap : &(char *gap)                        */
 /*          char **ans : Pointer of ans : &(char *ans)                        */
 /*          char ***eg : Pointer of eg  : &(char **eg)                        */
-/*          char ***ss : Pointer of ss  : &(char **ss)                        */
+/*          long ***ss : Pointer of ss  : &(char **ss)                        */
 /*          char ***bp : Pointer of eg  : &(char **bp)                        */
 /* Output : int : [ 0 : Normal terminate ]                                    */
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   : 2011/06/05                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Added value that v,w,v_ans,w_ans                                  */
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
@@ -207,10 +231,12 @@ long stored_jnum;
 int set_ans_str(
         char **v,
         char **w,
+        char **v_ans,
+        char **w_ans,
         char **gap,
         char **ans,
         char ***eg,
-        char ***ss,
+        long ***ss,
         char ***bp,
         long inum,
         long jnum
@@ -234,6 +260,23 @@ int set_ans_str(
 	}
 						/* Set pointer address        */
 	stored_w = *w;
+						/* Check for pointer          */
+	if( stored_v_ans != NULL ){
+						/* Case of already set        */
+						/*        when free memory    */
+		g_free(stored_v_ans);
+	}
+						/* Set pointer address        */
+	stored_v_ans = *v_ans;
+
+						/* Check for pointer          */
+	if( stored_w_ans != NULL ){
+						/* Case of already set        */
+						/*        when free memory    */
+		g_free(stored_w_ans);
+	}
+						/* Set pointer address        */
+	stored_w_ans = *w_ans;
 
 						/* Check for pointer          */
 	if( stored_gap != NULL ){
@@ -518,7 +561,7 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 	scanmode0_radio = GTK_WIDGET (
 	    gtk_builder_get_object (builder, "scanmode0")
 	);
-					/* Get scanmode1 object            */
+					/* Get scanmode1 object               */
 	scanmode1_radio = GTK_WIDGET (
 	    gtk_builder_get_object (builder, "scanmode1")
 	);
@@ -569,6 +612,14 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 	unmatch_num_spin = GTK_WIDGET (
 	        gtk_builder_get_object (builder, "unmatch_num")
 	);
+					/* Get threshold_num_vscale object    */
+	threshold_num_vscale = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "thresholdvscale")
+	);
+					/* Get continuity_num_vscale object   */
+	continuity_num_vscale = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "continuityvscale")
+	);
 					/* Get quit                           */
 	quit_button = GTK_WIDGET (
 		gtk_builder_get_object (builder, "quit" )
@@ -592,6 +643,14 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 					/* Get adjustment4 object             */
 	adjustment4 = GTK_ADJUSTMENT (
 	        gtk_builder_get_object (builder, "adjustment4")
+	);
+					/* Get adjustment5 object             */
+	adjustment5 = GTK_ADJUSTMENT (
+	        gtk_builder_get_object (builder, "adjustment5")
+	);
+					/* Get adjustment6 object             */
+	adjustment6 = GTK_ADJUSTMENT (
+	        gtk_builder_get_object (builder, "adjustment6")
 	);
 					/* Get drawingArea1 object            */
 	drawingArea1 = GTK_WIDGET (
@@ -665,6 +724,10 @@ void on_exec_clicked( GtkWidget *widget, gpointer user_data ){
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Added procedure that when big size file.                          */
 /*                                                                            */
+/* Date   : 2011/04/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Added funcion to gdk_threads_enter() and leave()                  */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -695,10 +758,13 @@ int lcs_thread(void){
 	char label_str[BUFFER_SIZE];
 
 	// char param_text[1024];
+
 					/* Pointer of widget                  */
 	GtkWidget *msgbox;
-					/* Thread in                          */
+					/* LCS thread in                      */
 	on_thread_flg = ON;
+					/* Enter Gtk threads                  */
+	gdk_threads_enter();
 					/* Set grayed out to exec_button      */
 	gtk_widget_set_sensitive( GTK_WIDGET(exec_button), FALSE );
 	
@@ -725,10 +791,24 @@ int lcs_thread(void){
 	e_num		= gtk_spin_button_get_value_as_int(
 				GTK_SPIN_BUTTON(e_num_spin)
 			);
+					/* Set threshold number for matrix    */
+	threshold_num   = gtk_adjustment_get_value( adjustment5 );
+
+					/* Set continuity number for matrix   */
+	continuity_num  = gtk_adjustment_get_value( adjustment6 );
+
+					/* Leave Gtk threads                  */
+	gdk_threads_leave();
+
 					/* Set number of replace score        */
 					/*    amplification                   */
 	rs_num = 10;
-/*
+
+#ifdef DEBUG
+	// debug write
+	printf("Before set_lcs_param()\n");
+
+	/*
 	sprintf( param_text, "%d," \
 	        "alignment_mode[%d]," \
 	        "gapscore_mode[%d]," \
@@ -754,7 +834,32 @@ int lcs_thread(void){
 	);
 	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview2) );
 	gtk_text_buffer_set_text( work, param_text, -1 );
-*/
+	*/
+
+	printf( "%d," \
+	        "alignment_mode[%d]," \
+	        "gapscore_mode[%d]," \
+	        "scan_mode[%d]," \
+	        "compare_mode[%d]," \
+	        "sequence_mode[%d],\n" \
+	        "match_num[%ld]," \
+	        "unmatch_num[%ld]," \
+	        "d_num[%ld]," \
+	        "e_num[%ld]," \
+	        "rs_num[%ld]\n",
+	        0,
+		alignment_mode,	
+		gapscore_mode,
+		scan_mode,
+		compare_mode,
+		sequence_mode,
+	        match_num,
+	        unmatch_num,
+	        d_num,
+	        e_num,
+	        rs_num
+	);
+#endif
 						/* Set parameter to lcs scope */
 	set_lcs_param(
 		0,
@@ -769,6 +874,8 @@ int lcs_thread(void){
 	        e_num,
 	        rs_num
 	);
+					/* Enter Gtk threads                  */
+	gdk_threads_enter();
 	
 	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview1) );
 						/* get pointer of text buffer */
@@ -782,6 +889,8 @@ int lcs_thread(void){
 			SourceSequence = NULL;
 		}
 	}
+					/* Leave Gtk threads                  */
+	gdk_threads_leave();
 
 	if( SourceSequence != NULL ){
 						/* Memory allocate to v       */
@@ -790,8 +899,11 @@ int lcs_thread(void){
 		v = malloc( strlen( SourceSequence ) + 1 );
 
 		if( v == NULL ){
+					/* Enter Gtk threads                  */
+			gdk_threads_enter();
+			
 					/* Case of error when return          */
-
+			
 					/* Output error dialog                */
 			msgbox = gtk_message_dialog_new(
 				GTK_WINDOW(window),
@@ -802,6 +914,9 @@ int lcs_thread(void){
 			);
 			gtk_dialog_run( GTK_DIALOG( msgbox ) );
 			gtk_widget_destroy( msgbox );
+					/* Leave Gtk threads                  */
+			gdk_threads_leave();
+			
 					/* Return with error terminate        */
 			return(1);
 		}
@@ -812,6 +927,8 @@ int lcs_thread(void){
 		//v = SourceSequence;
 
 	}else{
+						/* Enter Gtk threads          */
+		gdk_threads_enter();
 						/* Get sequence of w          */
 
 		gtk_text_buffer_get_start_iter( work, &start );
@@ -821,11 +938,17 @@ int lcs_thread(void){
 						/* get end iterator           */
 
 		v = gtk_text_buffer_get_text( work, &start, &end, TRUE );
+		
+						/* Leave Gtk threads          */
+		gdk_threads_leave();
+
 	}
 						/* get string from text buffer*/
 	inum = clean_up_sequence( v );
 						/* clean up sequence string   */
 
+						/* Enter Gtk threads          */
+	gdk_threads_enter();
 						/* get pointer of text buffer */
 	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview2) );
 
@@ -839,6 +962,8 @@ int lcs_thread(void){
 			TargetSequence = NULL;
 		}
 	}
+						/* Leave Gtk threads          */
+	gdk_threads_leave();
 
 	if( TargetSequence != NULL ){
 						/* Memory allocate to w       */
@@ -847,9 +972,12 @@ int lcs_thread(void){
 		w = malloc( strlen( TargetSequence ) + 1 );
 
 		if( w == NULL ){
-					/* Case of error when return          */
+						/* Enter Gtk threads          */
+			gdk_threads_enter();
 
-					/* Output error dialog                */
+						/* Case of error when return  */
+
+						/* Output error dialog        */
 			msgbox = gtk_message_dialog_new(
 				GTK_WINDOW(window),
 				GTK_DIALOG_DESTROY_WITH_PARENT,
@@ -859,7 +987,11 @@ int lcs_thread(void){
 			);
 			gtk_dialog_run( GTK_DIALOG( msgbox ) );
 			gtk_widget_destroy( msgbox );
-					/* Return with error terminate        */
+
+						/* Leave Gtk threads          */
+			gdk_threads_leave();
+
+						/* Return with error terminate*/
 			return(1);
 		}
 						/* Copy sequence to w buffer  */
@@ -869,6 +1001,8 @@ int lcs_thread(void){
 		//w = TargetSequence;
 
 	}else{
+						/* Enter Gtk threads          */
+		gdk_threads_enter();
 						/* Get sequence of w          */
 
 		gtk_text_buffer_get_start_iter( work, &start );
@@ -878,13 +1012,21 @@ int lcs_thread(void){
 						/* get end iterator           */
 
 		w = gtk_text_buffer_get_text( work, &start, &end, TRUE );
+
+						/* Leave Gtk threads          */
+		gdk_threads_leave();
 	}
 						/* get string from text buffer*/
 	jnum = clean_up_sequence( w );
 						/* clean up sequence string   */
 
 						/* Call lcs function          */
+	inum++;
+	jnum++;
 	ret = lcs( v, w, inum, jnum );
+
+						/* Enter Gtk threads          */
+	gdk_threads_enter();
 
 						/* Set label to exec_button   */
 	gtk_button_set_label( GTK_BUTTON(exec_button), label_str );
@@ -892,7 +1034,11 @@ int lcs_thread(void){
 					        /* Set active to exec_button  */
 	gtk_widget_set_sensitive( GTK_WIDGET(exec_button), TRUE );
 	
-						/* Thread out                 */
+						/* Leave Gtk threads          */
+	gdk_flush();
+	gdk_threads_leave();
+
+						/* LCS thread out             */
 	on_thread_flg = OFF;
 						/* Return code                */
 	return(ret);
@@ -969,8 +1115,8 @@ on_sequencemode1_toggled (GtkRadioButton *self, gpointer user_data)
 	gtk_widget_set_sensitive( scanmode1_radio, FALSE );
 
 						/* Change status              */
-	gtk_toggle_button_set_active( scanmode0_radio, TRUE );
-	gtk_toggle_button_set_active( scanmode1_radio, FALSE );
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(scanmode0_radio),TRUE);
+	gtk_toggle_button_set_active(GTK_TOGGLE_BUTTON(scanmode1_radio),FALSE);
 }
 
 						/* Call back function         */
@@ -1031,6 +1177,43 @@ on_gapscoremode1_toggled (GtkRadioButton *self, gpointer user_data)
 						/* Set alignment_mode         */
 						/*    to affine gap score (1) */
 	gapscore_mode = AFFINE_GAP_SCORE;
+}
+
+void
+on_thresholdvscale_value_changed (GtkVScale *self, gpointer user_data)
+{
+						/* Set threshold number       */
+						/*                for matrix  */
+	threshold_num = gtk_adjustment_get_value( adjustment5 );
+
+	while( drawing_pm_flg == TRUE ){
+						/* wait                       */
+	}
+	if( pm != NULL ){
+						/* Redraw matrix              */
+		draw_matrix( &pm );
+						/* Request draw               */
+		gtk_widget_queue_draw( drawingArea1 );
+	}
+}
+
+void
+on_continuityvscale_value_changed (GtkVScale *self, gpointer user_data)
+{
+						/* Set continuity number      */
+						/*                for matrix  */
+	continuity_num = gtk_adjustment_get_value( adjustment6 );
+
+	while( drawing_pm_flg == TRUE ){
+						/* wait                       */
+	}
+	
+	if( pm != NULL ){
+						/* Redraw matrix              */
+		draw_matrix( &pm );
+						/* Request draw               */
+		gtk_widget_queue_draw( drawingArea1 );
+	}
 }
 
 /******************************************************************************/
@@ -1782,10 +1965,12 @@ int SaveFile( void ){
 		return(-1);
 	}
 						/* Check for array            */
-	if(	(stored_v   == NULL) ||
-		(stored_w   == NULL) ||
-		(stored_gap == NULL) ||
-		(stored_ans == NULL)
+	if(	(stored_v     == NULL) ||
+		(stored_w     == NULL) ||
+		(stored_v_ans == NULL) ||
+		(stored_w_ans == NULL) ||
+		(stored_gap   == NULL) ||
+		(stored_ans   == NULL)
 	){
 						/* If stored array is NULL    */
 						/*               then return  */
@@ -1794,9 +1979,9 @@ int SaveFile( void ){
 						/* Counter reset              */
 	cnt = 0;
 						/* Loop of output             */
-	while( stored_v[cnt] != '\0' ){
+	while( stored_v_ans[cnt] != '\0' ){
 						/* Put sequence v             */
-		fputc( stored_v[cnt], fp );
+		fputc( stored_v_ans[cnt], fp );
 						/* Counter increment          */
 		cnt++;
 	}
@@ -1814,9 +1999,9 @@ int SaveFile( void ){
 						/* Counter reset              */
 	cnt = 0;
 						/* Loop of output             */
-	while( stored_w[cnt] != '\0' ){
+	while( stored_w_ans[cnt] != '\0' ){
 						/* Put sequence w             */
-		fputc( stored_w[cnt], fp );
+		fputc( stored_w_ans[cnt], fp );
 						/* Counter increment          */
 		cnt++;
 	}
@@ -1996,28 +2181,36 @@ int SaveFile( void ){
 						/*               then return  */
 		return(0);
 	}
-						/* Header (w sequence)       */
+						/* Header (w sequence)        */
 	fprintf(fp,"v\\w");
+						/* First space                */
+	//fprintf(fp,", ");
 
 	for( j = 1; j < stored_jnum - 1; j++ ){
-						/* Change gap charactar      */
+						/* Change gap charactar       */
 		if( stored_w[j] == '-' ){
-						/* '-' to '*'                */
+						/* '-' to '*'                 */
 			fprintf(fp,",*");
 		}else{
 			fprintf(fp,",%c",stored_w[j]);
 		}
-	}					/* -1 mean footer null       */
+	}					/* -1 mean footer null        */
 
 	fprintf(fp,"\n");
 
 	for( i = 1; i < stored_inum - 1; i++ ){
-						/* Header (v sequence)       */
-						/* -1 mean footer null       */
+						/* Header (v sequence)        */
+						/* -1 mean footer null        */
 
-						/* Change gap charactoar     */
+						/* Change gap charactoar      */
+		//if( i == 0 ){
+		//				/* First space                */
+		//	fprintf(fp," ");
+		//
+		//}else if( stored_v[i] == '-' ){
+
 		if( stored_v[i] == '-' ){
-						/* '-' to '*'                */
+						/* '-' to '*'                 */
 			fprintf(fp,"*");
 		}else{
 			fprintf(fp,"%c",stored_v[i]);
@@ -2134,7 +2327,7 @@ int SaveFile( void ){
 
 		for( j = 1; j < stored_jnum - 1; j++ ){
 
-			fprintf(fp, ",%d",stored_ss[i][j]);
+			fprintf(fp, ",%ld",stored_ss[i][j]);
 		}
  
 		fprintf(fp, "\n");
@@ -2371,7 +2564,7 @@ void on_About_item_activate (GtkImageMenuItem *self, gpointer user_data)
 						/* Program name               */
 		"program-name", "LCS",
 						/* Version                    */
-		"version", "0.1",
+		"version", "0.9.0",
 						/* License                    */
 		"license",
 		"LCS is free software and shareware:\n"\
@@ -2413,10 +2606,14 @@ void on_About_item_activate (GtkImageMenuItem *self, gpointer user_data)
 /* Author : Akihiro Kashiwagi                                                 */
 /* e-mail : a-kashiwagi@mippi-mail.com                                        */
 /*                                                                            */
-/* Input  : void                                                              */
+/* Input  : int mode      : Set mode that a with report or a without report.  */
 /* Output : GtkTextView * : Pointer of focusing(Selecting) text view          */
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   : 2011/05/21                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Added procedure for textview4 to textview8.                       */
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
@@ -2426,7 +2623,7 @@ void on_About_item_activate (GtkImageMenuItem *self, gpointer user_data)
 /*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
 /******************************************************************************/
 
-GtkTextView *FocusingTextView( void ){
+GtkTextView *FocusingTextView( int mode ){
 						/* Pointer of Text View       */
 	GtkTextView *tv;
 	
@@ -2441,6 +2638,45 @@ GtkTextView *FocusingTextView( void ){
 	}else 	if( GTK_WIDGET_HAS_FOCUS( textview3 ) == TRUE ){
 						/* textview3 have focus       */
 		tv = GTK_TEXT_VIEW( textview3 );
+
+	}else 	if(
+		(GTK_WIDGET_HAS_FOCUS( textview4 ) == TRUE) &&
+		(mode == WITHREPORT)
+	){
+						/* textview4 have focus       */
+		tv = GTK_TEXT_VIEW( textview4 );
+
+	}else 	if(
+		(GTK_WIDGET_HAS_FOCUS( textview5 ) == TRUE) &&
+		(mode == WITHREPORT)
+	){
+						/* textview5 have focus       */
+		tv = GTK_TEXT_VIEW( textview5 );
+
+	}else 	if(
+		(GTK_WIDGET_HAS_FOCUS( textview6 ) == TRUE) &&
+		(mode == WITHREPORT)
+	){
+						/* textview6 have focus       */
+		tv = GTK_TEXT_VIEW( textview6 );
+
+	}else 	if(
+		(GTK_WIDGET_HAS_FOCUS( textview7 ) == TRUE) &&
+		(mode == WITHREPORT)
+	){
+						/* textview7 have focus       */
+		tv = GTK_TEXT_VIEW( textview7 );
+
+	}else 	if(
+		(GTK_WIDGET_HAS_FOCUS( textview8 ) == TRUE) &&
+		(mode == WITHREPORT)
+	){
+						/* textview8 have focus       */
+		tv = GTK_TEXT_VIEW( textview8 );
+
+	}else{
+						/* Other widget               */
+		tv = NULL;
 	}
 						/* Pointer of textview return */
 	return( tv );
@@ -2475,13 +2711,21 @@ on_Cut_item_activate (GtkImageMenuItem *self, gpointer user_data)
 {
 	GtkTextBuffer *buffer;
 	GtkClipboard *clip;
+	GtkTextView *tv;
 						/* Get selection clipboard    */
 	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+
 						/* Get focusing textbuffer    */
-	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+	tv = FocusingTextView( WITHOUTREPORT );
+
+	if( tv != NULL ){
+						/* Get text buffer            */
+		buffer = gtk_text_view_get_buffer( tv );
+
 						/* Cut from buffer            */
 						/*    and Paste to clipboard  */
-	gtk_text_buffer_cut_clipboard( buffer, clip, TRUE );
+		gtk_text_buffer_cut_clipboard( buffer, clip, TRUE );
+	}
 }
 
 /******************************************************************************/
@@ -2513,13 +2757,21 @@ on_Copy_item_activate (GtkImageMenuItem *self, gpointer user_data)
 {
 	GtkTextBuffer *buffer;
 	GtkClipboard *clip;
+	GtkTextView *tv;
 						/* Get selection clipboard    */
 	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+
 						/* Get focusing textbuffer    */
-	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+	tv = FocusingTextView( WITHREPORT );
+
+	if( tv != NULL ){
+						/* Get text buffer            */
+		buffer = gtk_text_view_get_buffer( tv );
+
 						/* Copy from buffer           */
 						/*    and Paste to clipboard  */
-	gtk_text_buffer_copy_clipboard( buffer, clip );
+		gtk_text_buffer_copy_clipboard( buffer, clip );
+	}
 }
 
 /******************************************************************************/
@@ -2551,13 +2803,21 @@ on_Paste_item_activate (GtkImageMenuItem *self, gpointer user_data)
 {
 	GtkTextBuffer *buffer;
 	GtkClipboard *clip;
+	GtkTextView *tv;
 						/* Get selection clipboard    */
 	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+
 						/* Get focusing textbuffer    */
-	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+	tv = FocusingTextView( WITHOUTREPORT );
+
+	if( tv != NULL ){
+						/* Get text buffer            */
+		buffer = gtk_text_view_get_buffer( tv );
+
 						/* Paste to buffer            */
 						/*           from clipboard   */
-	gtk_text_buffer_paste_clipboard( buffer, clip, NULL, TRUE );
+		gtk_text_buffer_paste_clipboard( buffer, clip, NULL, TRUE );
+	}
 }
 
 /******************************************************************************/
@@ -2589,13 +2849,21 @@ on_Delete_item_activate (GtkImageMenuItem *self, gpointer user_data)
 {
 	GtkTextBuffer *buffer;
 	GtkClipboard *clip;
+	GtkTextView *tv;
 						/* Get selection clipboard    */
 	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+
 						/* Get focusing textbuffer    */
-	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+	tv = FocusingTextView( WITHOUTREPORT );
+
+	if( tv != NULL ){
+						/* Get text buffer            */
+		buffer = gtk_text_view_get_buffer( tv );
+
 						/* Delete selection string    */
-	//gtk_text_buffer_delete_selection( buffer, clip, TRUE );
-	gtk_text_buffer_delete_selection( buffer, FALSE, TRUE );
+		//gtk_text_buffer_delete_selection( buffer, clip, TRUE );
+		gtk_text_buffer_delete_selection( buffer, FALSE, TRUE );
+	}
 }
 
 /******************************************************************************/
@@ -2626,18 +2894,25 @@ on_SelectAll_item_activate (GtkImageMenuItem *self, gpointer user_data)
 {
 	GtkTextBuffer *buffer;
 	GtkClipboard *clip;
+	GtkTextView *tv;
 	GtkTextIter start;
 	GtkTextIter end;
 						/* Get selection clipboard    */
 	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+
 						/* Get focusing textbuffer    */
-	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+	tv = FocusingTextView( WITHREPORT );
+
+	if( tv != NULL ){
+						/* Get text buffer            */
+		buffer = gtk_text_view_get_buffer( tv );
 						/* Get start position         */
-	gtk_text_buffer_get_start_iter( buffer, &start);
+		gtk_text_buffer_get_start_iter( buffer, &start);
 						/* Get end position           */
-	gtk_text_buffer_get_end_iter( buffer, &end );
+		gtk_text_buffer_get_end_iter( buffer, &end );
 						/* Selection All              */
-	gtk_text_buffer_select_range( buffer, &start, &end );
+		gtk_text_buffer_select_range( buffer, &start, &end );
+	}
 }
 
 /******************************************************************************/
@@ -3135,6 +3410,10 @@ gboolean on_drawingarea1_expose_event (
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
 /*                                                                            */
+/* Date   : 2011/04/21                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Added procedure that threshold and continuity                     */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -3157,6 +3436,16 @@ int draw_matrix ( GdkPixmap **in_pm ){
 	long i;
 						/* Counter of jnum            */
 	long j;
+						/* Counter of outside inum    */
+	long outside_i;
+						/* Counter of outside jnum    */
+	long outside_j;
+						/* Counter of continuity      */
+	long continuity_cnt;
+						/* Plot flag                  */
+	int plot_flg;
+						/* Added last point           */
+	int too_last;
 						/* Graph space                */
 	int sp;
 						/* Width of font              */
@@ -3169,7 +3458,8 @@ int draw_matrix ( GdkPixmap **in_pm ){
 	PangoLayout *pl;
 						/* Buffer of measure text     */
 	char buf[32];
-
+						/* Drawing flag ON            */
+	drawing_pm_flg = TRUE;
 						/* Set values                 */
 
 						/* Store pointer of pixmap    */
@@ -3317,26 +3607,201 @@ int draw_matrix ( GdkPixmap **in_pm ){
 			);
 		}
 	}
+						/* Put threshold number       */
+						/*     and continuity number. */
+
+						/* Set threshold number       */
+						/*     and continuity number. */
+	sprintf( buf, "ts = %ld, cn = %ld",
+		(long)threshold_num,
+		(long)continuity_num
+	);
+
+#ifdef DEBUG
+	fprintf( stderr, "ts = %ld, cn = %ld\n",
+		(long)threshold_num,
+		(long)continuity_num
+	);
+#endif
+						/* Set text for pango(font)   */
+	pango_layout_set_text(pl, buf, -1); 
+						/* Get font size              */
+	pango_layout_get_pixel_size(
+	        pl,&font_width,&font_height
+	);
+						/* Put measure number         */
+	gdk_draw_layout( pm, gc,
+		width - sp - 3 - font_width, height - 3 - font_height, pl
+	);
 
 						/* Drawing dot matrix from eg */
-	for( i = 0; i < stored_inum; i++ ){
-		for( j = 0; j < stored_jnum; j++ ){
-						/* Case of bigger than zero   */
-			if( stored_eg[i][j] > 0 ){
-						/* Put dot                    */
-				gdk_draw_point(
+	//for( i = 0; i < stored_inum; i++ ){
+	//	for( j = 0; j < stored_jnum; j++ ){
+	//					/* Case of bigger than zero   */
+	//		if( stored_eg[i][j] > threshold_num ){
+	//					/* Put dot                    */
+	//			gdk_draw_point(
+	//				pm,
+	//				gc,
+	//				(gint)i + sp,
+	//			        (gint)j + sp
+	//			);
+	//		}
+	//	}
+	//}
+						/* Drawing dot matrix from eg */
+						/* side left down             */
+	for(outside_j = stored_jnum - 1; outside_j > 0; outside_j-- ){
+						/* Out side loop j            */
+
+						/* Counter of continuity      */ 
+		continuity_cnt = 0;
+						/* Flag of plot               */
+		plot_flg = FALSE;
+						/* Added last point           */
+		too_last = 0;
+		
+						/* Inside loop i,j            */
+		for(
+		    i = 0, j = outside_j;
+		    (i < stored_inum) && (j < stored_jnum);
+		    i++,j++
+		){
+			if( stored_eg[i][j] > (threshold_num * 10) ){
+						/* Case of bigger             */
+						/*      than threshold number */
+
+				continuity_cnt++;
+						/* Increment continuity count */
+				
+			}else if( continuity_cnt >= continuity_num ){
+						/* Case of bigger             */
+						/*     than continuity number */
+
+				plot_flg = TRUE;
+						/* Plot flag ON               */
+
+			}else{
+						/* Case of else               */
+						/*                            */
+						/* stored_eg[i][j]            */ 
+						/*           <= threshold_num */
+						/* continuity_cnt             */
+						/*          < continuity_num  */
+				continuity_cnt = 0;
+						/* Reset continuity           */
+			}
+
+						/* Location of last           */
+						/*             and continuity */
+			if( ((i == stored_inum - 1) || (j == stored_jnum - 1))
+			    && (continuity_cnt >= continuity_num)
+			){
+						/* Plot flag ON               */
+				plot_flg = TRUE;
+						/* Added last point           */
+				too_last = 1;
+			}
+
+						/* Case of Plot flag ON       */
+			if( plot_flg == TRUE ){
+						/* Plotting in continuity     */
+				gdk_draw_line(
 					pm,
 					gc,
-					(gint)i + sp,
-				        (gint)j + sp
+					sp + (gint)i - 1 - (continuity_cnt - 1),
+					sp + (gint)j - 1 - (continuity_cnt - 1),
+					sp + (gint)i - 1 + too_last,
+					sp + (gint)j - 1 + too_last
 				);
+						/* Reset counter              */
+				continuity_cnt = 0;
+						/* Plot flag OFF              */
+				plot_flg = FALSE;
 			}
 		}
 	}
+						/* Drawing dot matrix from eg */
+						/* side right up              */
+	for(outside_i = 0; outside_i < stored_inum; outside_i++ ){
+						/* Out side loop i            */
+
+						/* Counter of continuity      */ 
+		continuity_cnt = 0;
+						/* Flag of plot               */
+		plot_flg = FALSE;
+						/* Added last point           */
+		too_last = 0;
+
+						/* Inside loop i,j            */
+		for(
+		    i = outside_i, j = 0;
+		    (i < stored_inum) && (j < stored_jnum);
+		    i++,j++
+		){
+						/* Case of bigger             */
+						/*             than threshold */
+			if( stored_eg[i][j] > (threshold_num * 10) ){
+						/* Case of bigger             */
+						/*      than threshold number */
+
+				continuity_cnt++;
+						/* Increment continuity count */
+				
+			}else if( continuity_cnt >= continuity_num ){
+						/* Case of bigger             */
+						/*     than continuity number */
+
+				plot_flg = TRUE;
+						/* Plot flag ON               */
+
+			}else{
+						/* Case of else               */
+						/*                            */
+						/* stored_eg[i][j]            */ 
+						/*           <= threshold_num */
+						/* continuity_cnt             */
+						/*          < continuity_num  */
+				continuity_cnt = 0;
+						/* Reset continuity           */
+			}
+			
+						/* Location of last           */
+						/*             and continuity */
+			if( ((i == stored_inum - 1) || (j == stored_jnum - 1))
+			    && (continuity_cnt >= continuity_num)
+			){
+						/* Plot flag ON               */
+				plot_flg = TRUE;
+						/* Added last point           */
+				too_last = 1;
+			}
+
+						/* Case of Plot flag ON       */
+			if( plot_flg == TRUE ){
+						/* Plotting in continuity     */
+				gdk_draw_line(
+					pm,
+					gc,
+					sp + (gint)i - 1 - (continuity_cnt - 1),
+					sp + (gint)j - 1 - (continuity_cnt - 1),
+					sp + (gint)i - 1 + too_last,
+					sp + (gint)j - 1 + too_last
+				);
+						/* Reset counter              */
+				continuity_cnt = 0;
+						/* Plot flag OFF              */
+				plot_flg = FALSE;
+			}
+		}
+	}
+
 						/* Unreference graphic context*/
 	g_object_unref( gc );
 						/* Unreference color map      */
 	g_object_unref( cm );
+						/* Drawing flag OFF           */
+	drawing_pm_flg = FALSE;
 						/* Return                     */
 	return(0);
 }
