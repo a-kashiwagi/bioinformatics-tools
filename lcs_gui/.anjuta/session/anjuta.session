@@ -1,0 +1,30 @@
+
+[Anjuta]
+Geometry=919x669+83+45
+
+[Project Manager]
+Shortcut=lcs_gui//lcs_gui//src//lcs
+
+[File Loader]
+Files=file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.c#898%%%file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.h#30%%%file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/main.c#470%%%file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/callbacks.c#456%%%file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/callbacks.h#37%%%file:///home/data/Documents/Bioinformatics/src/lcs_gui/src/lcs_gui.ui
+
+[Document Manager]
+bookmarks=<?xml version="1.0" encoding="UTF-8"?>\n<bookmarks/>\n
+
+[Execution]
+Program arguments=%%%-cui -a -all -ga -ag ../../../dat/MG235_seq ../../../dat/1xp3a_seq%%%-cui -a -all -ga -ag ../../../dat/MG235_seq ../../../dat/1xp3_seq%%%-cui -a -all -ga -ag ../../../MG235_seq ../../../1xp3_seq%%%-cui%%%-h
+Program uri=file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs%%%file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs_gui
+Run in terminal=2
+Working directories=file:///home/akihiro/Documents/Bioinformatics/src/lcs_gui
+
+[Build]
+Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized
+Selected Configuration=Default
+BuildArgs/Default=--enable-maintainer-mode
+BuildArgs/Debug=--enable-maintainer-mode 'CFLAGS=-g -O0' 'CXXFLAGS=-g -O0' 'JFLAGS=-g -O0' 'FFLAGS=-g -O0'
+BuildArgs/Profiling=--enable-maintainer-mode 'CFLAGS=-g -pg' 'CXXFLAGS=-g -pg' 'JFLAGS=-g -pg' 'FFLAGS=-g -pg'
+BuildArgs/Optimized=--enable-maintainer-mode 'CFLAGS=-O2' 'CXXFLAGS=-O2' 'JFLAGS=-O2' 'FFLAGS=-O2'
+
+[Debugger]
+Watch=disp_flg%%%ans%%%output_mode%%%argv[cnt]
+Stop at beginning=2

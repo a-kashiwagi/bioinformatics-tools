@@ -12,8 +12,8 @@
 
     2-1.Extracting archive and change directory
 
-        >tar xvfz lcs-x.x.tar.gz
-        >cd lcs-x.x
+        >tar xvfz lcs-0.1.tar.gz
+        >cd lcs-0.1
 
     2-2.Configure
 
@@ -155,5 +155,5 @@
 
 Thank you.
 
-Copyright Akihiro Kashiwagi 2011/05/01
+Copyright Akihiro Kashiwagi 2011/04/08
 

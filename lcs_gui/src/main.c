@@ -60,8 +60,8 @@
 #include "callbacks.h"
 
 //For testing propose use the local (not installed) ui file
-#define UI_FILE PACKAGE_DATA_DIR"/lcs/ui/lcs_gui.ui"
-//#define UI_FILE "src/lcs_gui.ui"
+//#define UI_FILE PACKAGE_DATA_DIR"/lcs/ui/lcs_gui.ui"
+#define UI_FILE "src/lcs_gui.ui"
 
 						/* Function create window     */
 GtkWidget *create_window ( void );
@@ -1378,6 +1378,10 @@ void put_message( char *str ){
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Added arguments that is identites count, rate and score           */
 /*                                                                            */
+/* Date   : 2014/06/10                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Modify calculation method of v_lc_to and w_lc_to.                 */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -1558,6 +1562,8 @@ int PrintOutForTextView(
 		}
 		stored_v[cnt_buf] = '\0';
 						/* Output of sequence number */
+		v_lc_to = v_lc_from + strlen(stored_v) - 1;
+
 		sprintf( buf, ",%ld,%ld", v_lc_from, v_lc_to );
 		strcat( stored_v, buf );
 	}
@@ -1577,6 +1583,8 @@ int PrintOutForTextView(
 		}
 		stored_w[cnt_buf] = '\0';
 						/* Output of sequence number */
+		w_lc_to = w_lc_from + strlen(stored_w) - 1;
+
 		sprintf( buf, ",%ld,%ld", w_lc_from, w_lc_to );
 		strcat( stored_w, buf );
 	}

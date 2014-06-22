@@ -691,7 +691,7 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 /*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
 /******************************************************************************/
 
-pthread_t thread;
+pthread_t thread_for_lcs;
 int on_thread_flg;
 
 void on_exec_clicked( GtkWidget *widget, gpointer user_data ){
@@ -700,8 +700,7 @@ void on_exec_clicked( GtkWidget *widget, gpointer user_data ){
 	on_thread_flg = ON;
 						/* Call to lcs_thread()       */
 						/*                  in thread */
-	pthread_create( &thread, NULL, (void *)lcs_thread, NULL );
-	//lcs_thread();
+	pthread_create( &thread_for_lcs, NULL, (void *)lcs_thread, NULL );
 }
 
 
@@ -727,6 +726,10 @@ void on_exec_clicked( GtkWidget *widget, gpointer user_data ){
 /* Date   : 2011/04/15                                                        */
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Added funcion to gdk_threads_enter() and leave()                  */
+/*                                                                            */
+/* Date   : 2014/06/10                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Added pthread_detach()                                            */
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
@@ -1023,8 +1026,16 @@ int lcs_thread(void){
 						/* Call lcs function          */
 	inum++;
 	jnum++;
-	ret = lcs( v, w, inum, jnum );
-
+						/* Check for parameter        */
+	if( v != NULL && w != NULL && inum >= 0 && jnum >= 0 ){
+#ifdef DEBUG
+		printf("v[%s]\n",v);
+		printf("w[%s]\n",w);
+		printf("inum[%ld]\n",inum);
+		printf("jnum[%ld]\n",jnum);
+#endif
+		ret = lcs( v, w, inum, jnum );
+	}
 						/* Enter Gtk threads          */
 	gdk_threads_enter();
 
@@ -1037,9 +1048,10 @@ int lcs_thread(void){
 						/* Leave Gtk threads          */
 	gdk_flush();
 	gdk_threads_leave();
-
 						/* LCS thread out             */
 	on_thread_flg = OFF;
+						/* Detach this thread         */
+	pthread_detach( pthread_self() );
 						/* Return code                */
 	return(ret);
 }

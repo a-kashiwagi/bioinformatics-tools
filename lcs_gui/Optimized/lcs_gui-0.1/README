@@ -1,0 +1,71 @@
+LCS (Longest Common Subsequence) 2010/09/14
+
+How to install
+
+ 1.Extracting archive and change directory
+
+   >tar xvfz lcs_gui-0.1.tar.gz
+   >cd lcs_gui-0.1
+
+ 2.Configure
+
+   >./Configure
+
+ 3.Make
+
+   >make
+
+ 4.Install(became root)
+
+   >su
+   #make install
+
+ 5.A file "blosum62" move to /etc
+
+   #cd src
+   #cp blosum62 /etc/.
+   #exit
+   >
+
+ 6.Execute
+
+   >lcs_gui &
+
+ 7.Files
+
+     (1).lcs_gui : /usr/local/bin/lcs_gui
+     (2).lcs_gui.ui : /usr/local/share/lcs_gui/lcs_gui.ui
+     (3).blosum62 : /etc/blosum62
+
+ 8.Usage
+
+  lcs [ Options ] SourceFileName TargetFileName
+
+  Options:
+
+    -cui : Character User Interface mode
+    -gui : Graphical User Interface mode - default
+    -v   : Output v   sequence
+    -w   : Output w   sequence
+    -ans : Output ans sequence - default
+    -gap : Output gap sequence ( "+" Insertion "-" Deletion )
+    -eg  : Output eg  matrix
+    -ss  : Output ss  matrix
+    -bp  : Output bp  matrix
+    -n   : Compare by Nucleotide - default
+    -a   : Compare by Amino Acid
+    -part: Compare part of sequence - default
+    -all : Compare all sequence
+    -ga  : Global alignment mode - default
+    -la  : Local  alignment mode
+    -lg  : Liner gap  score - default
+    -ag  : Affine gap score
+    -mn number : Integer number of match - default 10
+    -un number : Integer number of unmatch - default -10
+    -dn number : Integer number of gap penalry - default 10
+    -en number : Integer number of affine gap penalry - default 5
+
+
+Thank you.
+
+Copyright Akihiro Kashiwagi 2010/09/14

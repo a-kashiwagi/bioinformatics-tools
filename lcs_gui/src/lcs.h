@@ -15,6 +15,10 @@
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Added procedure that is score chromatography.                     */
 /*                                                                            */
+/* Date   : 2014/06/10                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : The LCS calculation method changed to a multi threads procedure.  */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -94,7 +98,29 @@
 						/*     affine gap penalty     */
 #define DEF_RS_NUM		 10		/* Number of Replace score    */
 						/*    amplification           */
+#define THREADS			  2		/* Number of threads          */
 
+pthread_mutex_t mutex;				/* mutex for biggest_score    */
+long biggest_score;				/* Biggest score              */
+
+long local_inum;				/* Number of inum             */
+						/*     for a local alignment  */
+
+long local_jnum;				/* Number of jnum             */
+						/*     for a local alignment  */
+typedef struct thread_argments{
+        long i;
+        long j;
+        int type;
+        int mode;
+        char *v;
+        char *w;
+        char **eg;
+        long **ss;
+        char **bp;
+        long inum;
+        long jnum;
+} thread_args;
 						/* Prameter set               */
 int set_lcs_param(
 	int  disp_flg,
@@ -109,7 +135,6 @@ int set_lcs_param(
 	long e_num,
 	long rs_num
 );
-
 						/* Initialize function        */
 int lcs(
         char *v,
@@ -295,6 +320,8 @@ int hmm_scn_local(
     long *ans_end,
     double *ans_hmm
 );
+						/* LCS multi threads procedure*/
+void *calc_matrix( void *in_args );
 						/* Main function for cui main */
 int cui_main( int argc, char *argv[] );
 
