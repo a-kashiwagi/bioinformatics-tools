@@ -1,0 +1,430 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article
+  PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN" "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<article id="index" lang="en">
+<articleinfo>
+<title>Manual of LCS</title>
+<copyright><year>Since 2010</year><holder>Akihiro Kashiwagi</holder></copyright>
+<authorgroup><author><firstname>Akihiro</firstname><surname>Kashiwagi</surname></author></authorgroup>
+</articleinfo>
+<indexterm><primary>lcs</primary></indexterm>
+<indexterm><primary>bioinformatics</primary></indexterm>
+
+<sect1 id="lcs-introduction">
+<title>Introduction</title>
+<para>  Thank you for using this program. I wish, you will use this program from today to tomorrow and day after tomorrow. The LCS is software of calculate a Longest Common Subsequence by a dynamic programing. For Nucleotide and an Amino acid sequence.</para>
+</sect1>
+<sect1 id="lcs-how-to-use">
+<title>How to use</title>
+
+	<sect2 id="lcs-running-from-a-commandline">
+	<title>Running from a commandline</title>
+	<para>The LCS have GUI(Graphical user interface) and CUI(Character user interface). Default GUI.</para>
+	<para></para>
+	<orderedlist>
+	<listitem>
+	<para>Case of GUI</para>
+	<para></para>
+	<para>&gt; lcs -gui &amp;</para>
+	<para></para>
+	</listitem>
+	<listitem>
+	<para>Case of CUI</para>
+	<para></para>
+	<para>&gt; lcs -cui [ options... ] SourceFileName TargetFileName</para>
+	<para></para>
+	<para>See : <xref linkend="lcs-commandline-options"/>.</para>
+	<para></para>
+	</listitem>
+	</orderedlist>
+	</sect2>
+
+	<sect2 id="lcs-easy-way-to-use">
+	<title>Easy way to use</title>
+		<sect3 id="lcs-read-sequences">
+		<title>Read sequences</title>
+		<para>  By this section, I will instruct about a easy way to use by GUI. This software have a user interface of a standard GUI. The LCS can use a fasta format file and a only sequence file. And copy &amp; paste from other window. A upper text view area is a source data area, and a lower text view area is a target data area. A source data mean find a target sequence in a source seuence. I designed for copy &amp; paste. But you can use menu, toolbar and drag &amp; drop.</para>
+		</sect3>
+		<sect3 id="lcs-set-parameters">
+		<title>Set parameters</title>
+		<figure id="lcs-window">
+		<title>LCS Window</title>
+		 <screenshot>
+		  <mediaobject>
+		   <imageobject><imagedata fileref="figures/lcs_window.gif" format="GIF"/></imageobject>
+		   <textobject> <phrase>Shows lcs main.window.</phrase></textobject>
+		  </mediaobject>
+		 </screenshot>
+		</figure>
+		<para>You will set parameters.</para>
+		<itemizedlist>
+		<listitem>
+		<para>Nucleotide</para>
+		<para>Compare by Nucleotide</para>
+		</listitem>
+		<listitem>
+		<para>Amino</para>
+		<para>Compare by a Amino Acid</para>
+		</listitem>
+		<listitem>
+		<para>all</para>
+		<para>Compare an all sequence</para>
+		</listitem>
+		<listitem>
+		<para>part</para>
+		<para>Compare a part of sequence – default</para>
+		</listitem>
+		<listitem>
+		<para>ident</para>
+		<para>Pre-scan by identity match for a part of sequence mode.</para>
+		</listitem>
+		<listitem>
+		<para>hmm</para>
+		<para>Pre-scan by Hidden Markov Model for a part of sequence mode.</para>
+		</listitem>
+		<listitem>
+		<para>global</para>
+		<para>A Global alignment mode – default</para>
+		</listitem>
+		<listitem>
+		<para>local</para>
+		<para>A Local  alignment mode</para>
+		</listitem>
+		<listitem>
+		<para>affine</para>
+		<para>An Affine gap score, this can set a number of integer number - default 5</para>
+		</listitem>
+		<listitem>
+		<para>liner</para>
+		<para>A Liner gap  score, this can set a number of integer number - default 10</para>
+		</listitem>
+		<listitem>
+		<para>Match number</para>
+		<para>A Integer number of match - default 10</para>
+		</listitem>
+		<listitem>
+		<para>Unmatch number</para>
+		<para>A Integer number of unmatch - default -10</para>
+		</listitem>
+		</itemizedlist>
+		</sect3>
+		<sect3 id="lcs-Execute">
+		<title>Execute</title>
+		<para>You will push to "Execute" button, and calculate alignment.</para>
+		</sect3>
+	</sect2>
+</sect1>
+<sect1 id="lcs-menu">
+<title>Menus</title>
+<para>  The LCS have a few menus, that is subject to a standard user interface. that 'File', 'Edit'.</para>
+<orderedlist>
+<listitem>
+<para>Source file open</para>
+<para>This is load of sequence of source.</para>
+</listitem>
+<listitem>
+<para>Target file open</para>
+<para>This is load of sequence of target.</para>
+</listitem>
+<listitem>
+<para>Save</para>
+<para>This is save a alignment data. that [Filename].csv, [Filename].png, [Filename]_eg.csv, [Filename]_ss.csv and [Filename]_bp.csv.</para>
+<itemizedlist>
+<listitem>
+<para>[Filename].csv</para>
+<para>This is contain a flowing data, that an alignmented source sequence, a gap, an alignmented target sequence and an answer sequence. and with location, identities and alignment score. Using csv(comma separated value), therefore can open it by excel and the like software.</para>
+</listitem>
+<listitem>
+<para>[Filename].png</para>
+<para>This is picture of a dot matrix plot(Harr plot). Using PNG format of an unix standard.</para>
+</listitem>
+<listitem>
+<para>[Filename]_eg.csv</para>
+<para>This is data of a edit graph. about detail, you will investigate the dynamic programing.</para>
+</listitem>
+<listitem>
+<para>[Filename]_ss.csv</para>
+<para>This is data of a similarly score. about datail, you will investigate the dynamic programing.</para>
+</listitem>
+<listitem>
+<para>[Filename]_bp.csv</para>
+<para>This is data of a back tracking pointer. about datail, you will investigate the dynamic programing.</para>
+</listitem>
+</itemizedlist>
+</listitem>
+<listitem>
+<para>Save as</para>
+<para>This is save other filename.</para>
+</listitem>
+<listitem>
+<para>Quit</para>
+<para>This is quit to application.</para>
+</listitem>
+</orderedlist>
+</sect1>
+<sect1 id="lcs-parameters">
+<title>Parameters</title>
+<para>  The LCS have a few parameters. that a compare type, a compare mode, an alignment mode, a gap penalty, a number of gap penalty, a number of match, unmatch.</para>
+<orderedlist>
+ <listitem>
+  <para>Compare type</para>
+  <itemizedlist>
+   <listitem>
+    <para>Nucleotide</para>
+    <para>Compare to nucleotide and nucleotide.</para>
+   </listitem>
+   <listitem>
+    <para>Amino acid</para>
+    <para>Compare to an amino acide and an amino acide.</para>
+   </listitem>
+  </itemizedlist>
+ </listitem>
+ <listitem>
+  <para>Compare mode</para>
+  <itemizedlist>
+   <listitem>
+    <para>All sequence</para>
+    <para>Compare to an all sequence and an all sequence.</para>
+   </listitem>
+   <listitem>
+    <para>Part of sequence</para>
+    <para>Compare to part of sequence and part of sequence.</para>
+   </listitem>
+  </itemizedlist>
+ </listitem>
+ <listitem>
+  <para>Pre-scan type. This is for a part of sequence mode.</para>
+  <itemizedlist>
+   <listitem>
+    <para>ident</para>
+    <para>Pre-scan by identity match.</para>
+   </listitem>
+   <listitem>
+    <para>hmm</para>
+    <para>Pre-scan by Hidden Markov Model.</para>
+   </listitem>
+  </itemizedlist>
+ </listitem>
+ <listitem>
+  <para>Alignment mode</para>
+  <itemizedlist>
+   <listitem>
+    <para>Global alignment</para>
+    <para>Use a global alignment.</para>
+   </listitem>
+   <listitem>
+    <para>Local alignment</para>
+    <para>Use a local alignment.</para>
+   </listitem>
+  </itemizedlist>
+ </listitem>
+ <listitem>
+  <para>Gap penalty and that number</para>
+  <itemizedlist>
+   <listitem>
+    <para>Affine gap penalty</para>
+    <para>Use affine gap penalty. default 5.</para>
+   </listitem>
+   <listitem>
+    <para>Liner gap penalty</para>
+    <para>Use liner gap penalty. default 10.</para>
+   </listitem>
+  </itemizedlist>
+ </listitem>
+ <listitem>
+  <para>Number of match and unmatch</para>
+  <itemizedlist>
+   <listitem>
+    <para>Match</para>
+    <para>Number of match. default 10.</para>
+   </listitem>
+   <listitem>
+    <para>Unmatch</para>
+    <para>Nuber of unmatch. default 10, that is minus 10.</para>
+   </listitem>
+  </itemizedlist>
+ </listitem>
+</orderedlist>
+</sect1>
+<sect1 id="lcs-no,id,scr">
+<title>No,ID,SCR</title>
+<para>  Common means "No", "ID", "SCR" is number, identitiy, score.</para>
+<figure id="lcs-chromatography-nucleotide">
+<title>Common</title>
+ <screenshot>
+  <mediaobject>
+   <imageobject><imagedata fileref="figures/lcs_window.gif" format="GIF"/></imageobject>
+   <textobject> <phrase>Shows lcs common.</phrase></textobject>
+  </mediaobject>
+ </screenshot>
+</figure>
+<itemizedlist>
+<listitem>
+<para>"No" is used a sequence number in source.</para>
+</listitem>
+<listitem>
+<para>"ID" is a identity source and target sequence.</para>
+</listitem>
+<listitem>
+<para>"SCR" is score, case of nucleotide that a summary of match(1). case of an amino acid that summary of a blosum number.</para>
+</listitem>
+</itemizedlist>
+</sect1>
+<sect1 id="lcs-chromatography">
+<title>Chromatography</title>
+<para>  Chromatography is display to an allocated sequence by a color separated graph.</para>
+<orderedlist>
+<listitem>
+<para>  Case of nucleotide is cyan or a yellow green. cyan is 0(unmatch), a yellow green is 1(match).</para>
+<figure id="lcs-nucleotide">
+<title>Nucleotide</title>
+ <screenshot>
+  <mediaobject>
+   <imageobject><imagedata fileref="figures/lcs_chromatography_nuc.gif" format="GIF"/></imageobject>
+   <textobject> <phrase>Shows lcs tab.chromatography.nucleotide.</phrase></textobject>
+  </mediaobject>
+ </screenshot>
+</figure>
+</listitem>
+<listitem>
+<para>  Case of an amino acid is from yellow, green to blue, purple. Number of blosum 15(top) is yellow, green is 8, cyan is 0, blue is -8, purple is -15(under).</para>
+<figure id="lcs-amino acid">
+<title>Amino acid</title>
+ <screenshot>
+  <mediaobject>
+   <imageobject><imagedata fileref="figures/lcs_chromatography.gif" format="GIF"/></imageobject>
+   <textobject> <phrase>Shows lcs tab.chromatography.amino acid.</phrase></textobject>
+  </mediaobject>
+ </screenshot>
+</figure>
+</listitem>
+</orderedlist>
+</sect1>
+<sect1 id="lcs-report">
+<title>Report</title>
+<para>  Report is display to a detail of allocated sequence. that is number, a source sequence, gap, match, unmatch, insertion, deletion, a target sequence, an allocated sequence and an allocation parameter.</para>
+<figure id="report">
+<title>Report</title>
+ <screenshot>
+  <mediaobject>
+   <imageobject><imagedata fileref="figures/lcs_report.gif" format="GIF"/></imageobject>
+   <textobject> <phrase>Shows lcs tab.report.</phrase></textobject>
+  </mediaobject>
+ </screenshot>
+</figure>
+<para>From left side, 1.No 2.source sequence 3.match type 4.target sequence 5.allocated sequence 6.allocation parameter. Match type is match '=', insertion '+', deletion '-', gap '|'</para>
+</sect1>
+<sect1 id="lcs-matrix">
+<title>Matrix</title>
+<para>  Matrix is display to an allocated sequence by a dot matrix plot(harr plot). Dot is a plus number of allocated.</para>
+<figure id="matrix">
+<title>Matrix</title>
+ <screenshot>
+  <mediaobject>
+   <imageobject><imagedata fileref="figures/lcs_matrix.gif" format="GIF"/></imageobject>
+   <textobject> <phrase>Shows lcs tab.matrix.</phrase></textobject>
+  </mediaobject>
+ </screenshot>
+</figure>
+<para>  X axis is a source sequence. Y axis is a target sequence.</para>
+</sect1>
+<sect1 id="lcs-commandline-options">
+<title>Commandline options</title>
+<para>lcs [ Options ] SourceFileName TargetFileName</para>
+<para>Options</para>
+<orderedlist>
+<listitem>
+<para>-cui</para>
+<para>A Character User Interface mode</para>
+</listitem>
+<listitem>
+<para>-gui</para>
+<para>A Graphical User Interface mode - default</para>
+</listitem>
+<listitem>
+<para>-v</para>
+<para>Output v sequence</para>
+</listitem>
+<listitem>
+<para>-w</para>
+<para>Output w sequence</para>
+</listitem>
+<listitem>
+<para>-ans</para>
+<para>Output ans sequence - default</para>
+</listitem>
+<listitem>
+<para>-gap</para>
+<para>Output gap sequence ( "+" Insertion "-" Deletion )</para>
+</listitem>
+<listitem>
+<para>-eg</para>
+<para>Output eg  matrix</para>
+</listitem>
+<listitem>
+<para>-ss</para>
+<para>Output ss  matrix</para>
+</listitem>
+<listitem>
+<para>-bp</para>
+<para>Output bp  matrix</para>
+</listitem>
+<listitem>
+<para>-n</para>
+<para>Compare by Nucleotide - default</para>
+</listitem>
+<listitem>
+<para>-a</para>
+<para>Compare by Amino Acid</para>
+</listitem>
+<listitem>
+<para>-part</para>
+<para>Compare part of sequence - default</para>
+</listitem>
+<listitem>
+<para>-all</para>
+<para>Compare all sequence</para>
+</listitem>
+<listitem>
+<para>-id</para>
+<para>Pre scan by identity match</para>
+</listitem>
+<listitem>
+<para>-hmm</para>
+<para>Pre scan by hmm - default</para>
+</listitem>
+<listitem>
+<para>-ga</para>
+<para>Global alignment mode - default</para>
+</listitem>
+<listitem>
+<para>-la</para>
+<para>Local  alignment mode</para>
+</listitem>
+<listitem>
+<para>-lg</para>
+<para>Liner gap  score - default</para>
+</listitem>
+<listitem>
+<para>-ag</para>
+<para>Affine gap score</para>
+</listitem>
+<listitem>
+<para>-mn number</para>
+<para>Integer number of match - default 10</para>
+</listitem>
+<listitem>
+<para>-un number</para>
+<para>Integer number of unmatch - default -10</para>
+</listitem>
+<listitem>
+<para>-dn number</para>
+<para>Integer number of gap penalry - default 10</para>
+</listitem>
+<listitem>
+<para>-en number</para>
+<para>Integer number of affine gap penalry - default 5</para>
+</listitem>
+</orderedlist>
+</sect1>
+</article>

@@ -1,0 +1,103 @@
+.TH LCS "1" "April 2011" "Longest Common Subsequence Program" "User Commands"
+.SH NAME
+lcs \- Longest Common Subsequence Program
+.SH SYNOPSIS
+.B lcs
+[\fIOPTIONS...\fR] \fISourceFile\fR \fITargetFile\fR
+.SH DESCRIPTION
+.\" Add any additional description here
+.PP
+This program is calculate Longest Common Subsequence, used dynamic programing.
+.PP
+.SH OPTIONS
+.TP
+\fB\-cui\fR
+Character User Interface mode
+.TP
+\fB\-gui\fR
+Graphical User Interface mode - default
+.TP
+\fB\-v\fR
+Output v sequence.
+.TP
+\fB\-w\fR
+Output w sequence.
+.TP
+\fB\-ans\fR
+Output ans sequence - default.
+.TP
+\fB\-gap\fR
+Output gap sequence. ( "+" Insertion "-" Deletion )
+.TP
+\fB\-eg\fR
+Output eg  matrix.
+.TP
+\fB\-ss\fR
+Output ss  matrix.
+.TP
+\fB\-bp\fR
+Output bp  matrix.
+.TP
+\fB\-n\fR
+Compare by Nucleotide. - default
+.TP
+\fB\-a\fR
+Compare by Amino Acid.
+.TP
+\fB\-part\fR
+Compare part of sequence. - default
+.TP
+\fB\-all\fR
+Compare all sequence.
+.TP
+\fB\-id\fR
+Pre scan by identity match.
+.TP
+\fB\-hmm\fR
+Pre scan by hmm.
+.TP
+\fB\-ga\fR
+Global alignment mode. - default
+.TP
+\fB\-la\fR
+Local  alignment mode.
+.TP
+\fB\-lg\fR
+Liner gap score. - default
+.TP
+\fB\-ag\fR
+Affine gap score.
+.TP
+\fB\-mn number\fR
+Integer number of match. - default 10
+.TP
+\fB\-un number\fR
+Integer number of unmatch. - default -10
+.TP
+\fB\-dn number\fR
+Integer number of gap penalry. - default 10
+.TP
+\fB\-en\fR
+Integer number of affine gap penalry. - default 5
+.SS "Exit status:"
+.TP
+0
+Normal terminate.
+.TP
+!=0
+Error.
+.SH AUTHOR
+Akihiro Kashiwagi <e-mail: a-kashiwagi@mippi-mail.com>
+.SH "REPORTING BUGS"
+Report lcs bugs to <e-mail: a-kashiwagi@mippi-mail.com>
+.br
+home page: <http://sites.google.com/site/kashiwagiakihiro/>
+.SH COPYRIGHT
+Copyright \(co Since 2010 Akihiro Kashiwagi.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+This is a free software and shareware: you are free to change and redistribute it.
+and you must pay 10[%] part of profit to me that case of you used this software
+for business.
+There is NO WARRANTY, to the extent permitted by law.
+.SH "SEE ALSO"
+PredictGene, rf_fasta, reverse, CutsAtStopCodon, ExtractORF 

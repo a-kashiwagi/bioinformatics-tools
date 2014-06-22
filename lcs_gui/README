@@ -1,0 +1,159 @@
+           LCS (Longest Common Subsequence) - Akihiro Kashiwagi
+
+1.Greeting
+
+    Thank you for download this software. I wish, You will use this software.
+
+2.How to install
+
+      Folowing, I wrote about easy installation LCS, case of Ubuntu 9.
+    Therefore case of different system, you will change each directorys.
+    and about detail, Please You will read "INSTALL" file.
+
+    2-1.Extracting archive and change directory
+
+        >tar xvfz lcs-0.1.tar.gz
+        >cd lcs-0.1
+
+    2-2.Configure
+
+        >./configure
+
+    2-3.Make
+
+        >make
+
+    2-4.Install(became root)
+
+        >su
+        #make install
+
+    2-5.A file "blosum62" move to /etc
+
+        #cd data
+        #cp blosum62 /etc/.
+        #cd ..
+
+    2-6.A directory "manual/lcs" move to /usr/share/gnome/help/.
+
+        #cd manual
+        #cp -r ./lcs /usr/share/gnome/help/.
+        #cd ..
+
+    2-7.A file "lcs.png" move to /usr/share/icons
+
+        #cd icon
+        #cp lcs.png /usr/share/icons/.
+        #exit
+        >
+
+    2-8.Execute
+
+        >lcs &
+
+    2-9.Files
+
+        (1).lcs : /usr/local/bin/lcs_gui
+                LCS binary file.
+
+        (2).lcs_gui.ui : /usr/local/share/lcs/lcs_gui.ui
+                User interface file for GtkBuilder.
+
+        (3).lcs.png : /usr/share/icons/lcs.1
+                LCS icon file.
+
+        (4).blosum62 : /etc/blosum62
+                Blosum62 parameter file.
+
+        (5).lcs.1 : /usr/local/share/man/man1/lcs.1
+                LCS man document.
+
+        (6).lcs.xml and relation files : /usr/share/gnome/Help/lcs/C/*
+                LCS DocBook for Help and relation files.
+
+3.Usage
+
+    3-1.Execute
+
+        Following, LCS man document. LCS have GUI and CUI.
+
+
+
+        lcs [ Options ] SourceFileName TargetFileName
+
+        Options:
+
+                -cui : Character User Interface mode
+                -gui : Graphical User Interface mode - default
+                -v   : Output v   sequence
+                -w   : Output w   sequence
+                -ans : Output ans sequence - default
+                -gap : Output gap sequence ( "+" Insertion "-" Deletion )
+                -eg  : Output eg  matrix
+                -ss  : Output ss  matrix
+                -bp  : Output bp  matrix
+                -n   : Compare by Nucleotide - default
+                -a   : Compare by Amino Acid
+                -part: Compare part of sequence - default
+                -all : Compare all sequence
+		-id  : Pre scan by identity match
+		-hmm : Pre scan by hmm
+                -ga  : Global alignment mode - default
+                -la  : Local  alignment mode
+                -lg  : Liner gap  score - default
+                -ag  : Affine gap score
+                -mn number : Integer number of match - default 10
+                -un number : Integer number of unmatch - default -10
+                -dn number : Integer number of gap penalry - default 10
+                -en number : Integer number of affine gap penalry - default 5
+
+
+
+    3-2.Easy way to use.
+
+        (1).Read sequence
+
+              By this section, I will instruct about a easy way to use by GUI.
+            This software have a user interface of a standard GUI. The LCS can
+            use a fasta format file and a only sequence file. And copy & paste
+            from other window. A upper text view area is a source data area,
+            and a lower text view area is a target data area. A source data
+            mean find a target sequence in a source seuence. I designed for
+            copy & paste. But you can use menu, toolbar and drag & drop.
+
+        (2).Set parameters
+
+            You will set parameter.
+
+                Nucleotide : Compare by Nucleotide
+                Amino      : Compare by Amino Acid
+
+                all        : Compare all sequence
+                part       : Compare part of sequence - default
+
+                ident      : Pre-scan by identity match
+                                     for a part of sequence mode.
+                hmm        : Pre-scan by Hidden Markov Model
+                                     for a part of sequence mode.
+
+                global     : Global alignment mode - default
+                local      : Local  alignment mode
+
+                affine     : Affine gap score, this can set a number
+                             of integer number - default 5
+
+                liner      : Liner gap  score, this can set a number
+                             of integer number - default 10
+
+                Match number   : Integer number of match
+                                 - default 10
+                Unmatch number : Integer number of unmatch
+                                 - default -10
+
+        (3).Execute
+                You will push to "Execute" button, and calculate alignment.
+
+Thank you.
+
+Copyright Akihiro Kashiwagi 2011/04/08
+
