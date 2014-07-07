@@ -32,8 +32,8 @@ POST_INSTALL = :
 NORMAL_UNINSTALL = :
 PRE_UNINSTALL = :
 POST_UNINSTALL = :
-build_triplet = i686-pc-linux-gnu
-host_triplet = i686-pc-linux-gnu
+build_triplet = x86_64-unknown-linux-gnu
+host_triplet = x86_64-unknown-linux-gnu
 subdir = .
 DIST_COMMON = README $(am__configure_deps) $(srcdir)/Makefile.am \
 	$(srcdir)/Makefile.in $(srcdir)/config.h.in \
@@ -126,14 +126,14 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/a-kashiwagi/src/lcs_gui/missing --run aclocal-1.11
 ALL_LINGUAS = 
-AMTAR = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run tar
+AMTAR = ${SHELL} /home/a-kashiwagi/src/lcs_gui/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run automake-1.11
-AWK = mawk
+AUTOCONF = ${SHELL} /home/a-kashiwagi/src/lcs_gui/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/a-kashiwagi/src/lcs_gui/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/a-kashiwagi/src/lcs_gui/missing --run automake-1.11
+AWK = gawk
 CATALOGS = 
 CATOBJEXT = .gmo
 CC = gcc
@@ -145,7 +145,6 @@ CYGPATH_W = echo
 DATADIRNAME = share
 DEFS = -DHAVE_CONFIG_H
 DEPDIR = .deps
-DLLTOOL = false
 DSYMUTIL = 
 DUMPBIN = 
 ECHO_C = 
@@ -167,11 +166,11 @@ INSTOBJEXT = .mo
 INTLLIBS = 
 INTLTOOL_EXTRACT = /usr/bin/intltool-extract
 INTLTOOL_MERGE = /usr/bin/intltool-merge
-INTLTOOL_PERL = /usr/bin/perl
+INTLTOOL_PERL = /usr/local/bin/perl
 INTLTOOL_UPDATE = /usr/bin/intltool-update
-LCS_CFLAGS = -pthread -I/usr/include/gtk-2.0 -I/usr/lib/i386-linux-gnu/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/gdk-pixbuf-2.0 -I/usr/include/pango-1.0 -I/usr/include/gio-unix-2.0/ -I/usr/include/glib-2.0 -I/usr/lib/i386-linux-gnu/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12  
-LCS_LIBS = -pthread -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lpangocairo-1.0 -lgdk_pixbuf-2.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lgthread-2.0 -lrt -lglib-2.0  
-LD = /usr/bin/ld
+LCS_CFLAGS = -I/usr/include/gtk-2.0 -I/usr/lib64/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/glib-2.0 -I/usr/lib64/glib-2.0/include -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12  
+LCS_LIBS = -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lgio-2.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lpangocairo-1.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0  
+LD = /usr/bin/ld -m elf_x86_64
 LDFLAGS = 
 LIBOBJS = 
 LIBS = 
@@ -179,9 +178,8 @@ LIBTOOL = $(SHELL) $(top_builddir)/libtool
 LIPO = 
 LN_S = ln -s
 LTLIBOBJS = 
-MAINT = 
-MAKEINFO = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run makeinfo
-MANIFEST_TOOL = :
+MAINT = #
+MAKEINFO = ${SHELL} /home/a-kashiwagi/src/lcs_gui/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
 MKINSTALLDIRS = ./mkinstalldirs
 MSGFMT = /usr/bin/msgfmt
@@ -196,10 +194,10 @@ OTOOL64 =
 PACKAGE = lcs
 PACKAGE_BUGREPORT = http://sites.google.com/site/kashiwagiakihiro/
 PACKAGE_NAME = lcs
-PACKAGE_STRING = lcs 0.1
+PACKAGE_STRING = lcs 0.9
 PACKAGE_TARNAME = lcs
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.1
+PACKAGE_VERSION = 0.9
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 PKG_CONFIG_LIBDIR = 
@@ -211,16 +209,15 @@ PO_IN_DATADIR_TRUE =
 RANLIB = ranlib
 SED = /bin/sed
 SET_MAKE = 
-SHELL = /bin/bash
+SHELL = /bin/sh
 STRIP = strip
 USE_NLS = yes
-VERSION = 0.1
+VERSION = 0.9
 XGETTEXT = /usr/bin/xgettext
-abs_builddir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
-abs_srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
-abs_top_builddir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
-abs_top_srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
-ac_ct_AR = ar
+abs_builddir = /home/a-kashiwagi/src/lcs_gui
+abs_srcdir = /home/a-kashiwagi/src/lcs_gui
+abs_top_builddir = /home/a-kashiwagi/src/lcs_gui
+abs_top_srcdir = /home/a-kashiwagi/src/lcs_gui
 ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
 am__include = include
@@ -229,30 +226,31 @@ am__quote =
 am__tar = ${AMTAR} chof - "$$tardir"
 am__untar = ${AMTAR} xf -
 bindir = ${exec_prefix}/bin
-build = i686-pc-linux-gnu
+build = x86_64-unknown-linux-gnu
 build_alias = 
-build_cpu = i686
+build_cpu = x86_64
 build_os = linux-gnu
-build_vendor = pc
+build_vendor = unknown
 builddir = .
 datadir = ${datarootdir}
 datarootdir = ${prefix}/share
 docdir = ${datarootdir}/doc/${PACKAGE_TARNAME}
 dvidir = ${docdir}
 exec_prefix = ${prefix}
-host = i686-pc-linux-gnu
+host = x86_64-unknown-linux-gnu
 host_alias = 
-host_cpu = i686
+host_cpu = x86_64
 host_os = linux-gnu
-host_vendor = pc
+host_vendor = unknown
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/install-sh
+install_sh = ${SHELL} /home/a-kashiwagi/src/lcs_gui/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
 localstatedir = ${prefix}/var
+lt_ECHO = echo
 mandir = ${datarootdir}/man
 mkdir_p = /bin/mkdir -p
 oldincludedir = /usr/include
@@ -292,7 +290,8 @@ EXTRA_DIST = $(lcs_doc_DATA) \
 	manual/lcs/C/figures/lcs_chromatography.gif \
 	manual/lcs/C/figures/lcs_chromatography_nuc.gif \
 	manual/lcs/C/figures/lcs_report.gif \
-	manual/lcs/C/figures/lcs_matrix.gif
+	manual/lcs/C/figures/lcs_matrix.gif \
+	manual/lcs/C/figures/MG235-1xp3a_ts3_cn4.gif
 
 DISTCLEANFILES = intltool-extract \
 	intltool-merge \
@@ -305,7 +304,7 @@ all: config.h
 .SUFFIXES:
 am--refresh:
 	@:
-$(srcdir)/Makefile.in:  $(srcdir)/Makefile.am  $(am__configure_deps)
+$(srcdir)/Makefile.in: # $(srcdir)/Makefile.am  $(am__configure_deps)
 	@for dep in $?; do \
 	  case '$(am__configure_deps)' in \
 	    *$$dep*) \
@@ -332,9 +331,9 @@ Makefile: $(srcdir)/Makefile.in $(top_builddir)/config.status
 $(top_builddir)/config.status: $(top_srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 	$(SHELL) ./config.status --recheck
 
-$(top_srcdir)/configure:  $(am__configure_deps)
+$(top_srcdir)/configure: # $(am__configure_deps)
 	$(am__cd) $(srcdir) && $(AUTOCONF)
-$(ACLOCAL_M4):  $(am__aclocal_m4_deps)
+$(ACLOCAL_M4): # $(am__aclocal_m4_deps)
 	$(am__cd) $(srcdir) && $(ACLOCAL) $(ACLOCAL_AMFLAGS)
 $(am__aclocal_m4_deps):
 
@@ -347,7 +346,7 @@ config.h: stamp-h1
 stamp-h1: $(srcdir)/config.h.in $(top_builddir)/config.status
 	@rm -f stamp-h1
 	cd $(top_builddir) && $(SHELL) ./config.status config.h
-$(srcdir)/config.h.in:  $(am__configure_deps) 
+$(srcdir)/config.h.in: # $(am__configure_deps) 
 	($(am__cd) $(top_srcdir) && $(AUTOHEADER))
 	rm -f stamp-h1
 	touch $@

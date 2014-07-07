@@ -19,9 +19,9 @@
 
 GETTEXT_PACKAGE = lcs
 PACKAGE = lcs
-VERSION = 0.1
+VERSION = 0.9
 
-SHELL = /bin/bash
+SHELL = /bin/sh
 
 srcdir = .
 top_srcdir = ..
@@ -36,7 +36,7 @@ libdir = ${exec_prefix}/lib
 DATADIRNAME = share
 itlocaledir = $(prefix)/$(DATADIRNAME)/locale
 subdir = po
-install_sh = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/install-sh
+install_sh = ${SHELL} /home/a-kashiwagi/src/lcs_gui/install-sh
 # Automake >= 1.8 provides /bin/mkdir -p.
 # Until it can be supposed, use the safe fallback:
 mkdir_p = $(install_sh) -d

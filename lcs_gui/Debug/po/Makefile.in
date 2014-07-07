@@ -19,14 +19,14 @@
 
 GETTEXT_PACKAGE = lcs
 PACKAGE = lcs
-VERSION = 0.1
+VERSION = 0.9
 
 SHELL = /bin/bash
 
-srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui/po
-top_srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
+srcdir = /home/data/Documents/Bioinformatics/src/lcs_gui/po
+top_srcdir = /home/data/Documents/Bioinformatics/src/lcs_gui
 top_builddir = ..
-VPATH = /home/akihiro/Documents/Bioinformatics/src/lcs_gui/po
+VPATH = /home/data/Documents/Bioinformatics/src/lcs_gui/po
 
 prefix = /usr/local
 exec_prefix = ${prefix}
@@ -36,7 +36,7 @@ libdir = ${exec_prefix}/lib
 DATADIRNAME = share
 itlocaledir = $(prefix)/$(DATADIRNAME)/locale
 subdir = po
-install_sh = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/install-sh
+install_sh = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/install-sh
 # Automake >= 1.8 provides /bin/mkdir -p.
 # Until it can be supposed, use the safe fallback:
 mkdir_p = $(install_sh) -d

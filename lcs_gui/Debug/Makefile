@@ -15,7 +15,7 @@
 
 
 
-VPATH = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
+VPATH = /home/data/Documents/Bioinformatics/src/lcs_gui
 pkgdatadir = $(datadir)/lcs
 pkgincludedir = $(includedir)/lcs
 pkglibdir = $(libdir)/lcs
@@ -126,19 +126,19 @@ DIST_ARCHIVES = $(distdir).tar.gz
 GZIP_ENV = --best
 distuninstallcheck_listfiles = find . -type f -print
 distcleancheck_listfiles = find . -type f -print
-ACLOCAL = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run aclocal-1.11
+ACLOCAL = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/missing --run aclocal-1.11
 ALL_LINGUAS = 
-AMTAR = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run tar
+AMTAR = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/missing --run tar
 AR = ar
-AUTOCONF = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run autoconf
-AUTOHEADER = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run autoheader
-AUTOMAKE = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run automake-1.11
+AUTOCONF = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/missing --run autoconf
+AUTOHEADER = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/missing --run autoheader
+AUTOMAKE = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/missing --run automake-1.11
 AWK = mawk
 CATALOGS = 
 CATOBJEXT = .gmo
 CC = gcc
 CCDEPMODE = depmode=gcc3
-CFLAGS = -g -O0
+CFLAGS = -g -O0 -DDEBUG
 CPP = gcc -E
 CPPFLAGS = 
 CYGPATH_W = echo
@@ -168,8 +168,8 @@ INTLTOOL_EXTRACT = /usr/bin/intltool-extract
 INTLTOOL_MERGE = /usr/bin/intltool-merge
 INTLTOOL_PERL = /usr/bin/perl
 INTLTOOL_UPDATE = /usr/bin/intltool-update
-LCS_CFLAGS = -D_REENTRANT -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/atk-1.0 -I/usr/include/cairo -I/usr/include/pango-1.0 -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/directfb -I/usr/include/libpng12 -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include  
-LCS_LIBS = -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lgio-2.0 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lglib-2.0  
+LCS_CFLAGS = -pthread -I/usr/local/include/atk-1.0 -I/usr/local/include/cairo -I/usr/local/include/pango-1.0 -I/usr/local/include/gdk-pixbuf-2.0 -I/usr/local/include/glib-2.0 -I/usr/local/lib/glib-2.0/include -I/usr/local/include/pixman-1 -I/usr/include/gtk-2.0 -I/usr/lib/gtk-2.0/include -I/usr/include/freetype2 -I/usr/include/libpng12  
+LCS_LIBS = -pthread -L/usr/local/lib -lgtk-x11-2.0 -lgdk-x11-2.0 -latk-1.0 -lpangoft2-1.0 -lgdk_pixbuf-2.0 -lm -lpangocairo-1.0 -lgio-2.0 -lpng12 -lcairo -lpango-1.0 -lfreetype -lfontconfig -lgobject-2.0 -lgmodule-2.0 -lgthread-2.0 -lrt -lglib-2.0  
 LD = /usr/bin/ld
 LDFLAGS = 
 LIBOBJS = 
@@ -179,9 +179,9 @@ LIPO =
 LN_S = ln -s
 LTLIBOBJS = 
 MAINT = 
-MAKEINFO = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/missing --run makeinfo
+MAKEINFO = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/missing --run makeinfo
 MKDIR_P = /bin/mkdir -p
-MKINSTALLDIRS = /home/akihiro/Documents/Bioinformatics/src/lcs_gui/mkinstalldirs
+MKINSTALLDIRS = /home/data/Documents/Bioinformatics/src/lcs_gui/mkinstalldirs
 MSGFMT = /usr/bin/msgfmt
 MSGFMT_OPTS = -c
 MSGMERGE = /usr/bin/msgmerge
@@ -192,12 +192,12 @@ OBJEXT = o
 OTOOL = 
 OTOOL64 = 
 PACKAGE = lcs
-PACKAGE_BUGREPORT = 
+PACKAGE_BUGREPORT = http://sites.google.com/site/kashiwagiakihiro/
 PACKAGE_NAME = lcs
-PACKAGE_STRING = lcs 0.1
+PACKAGE_STRING = lcs 0.9
 PACKAGE_TARNAME = lcs
 PACKAGE_URL = 
-PACKAGE_VERSION = 0.1
+PACKAGE_VERSION = 0.9
 PATH_SEPARATOR = :
 PKG_CONFIG = /usr/bin/pkg-config
 POFILES = 
@@ -210,12 +210,12 @@ SET_MAKE =
 SHELL = /bin/bash
 STRIP = strip
 USE_NLS = yes
-VERSION = 0.1
+VERSION = 0.9
 XGETTEXT = /usr/bin/xgettext
-abs_builddir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui/Debug
-abs_srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
-abs_top_builddir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui/Debug
-abs_top_srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
+abs_builddir = /home/data/Documents/Bioinformatics/src/lcs_gui/Debug
+abs_srcdir = /home/data/Documents/Bioinformatics/src/lcs_gui
+abs_top_builddir = /home/data/Documents/Bioinformatics/src/lcs_gui/Debug
+abs_top_srcdir = /home/data/Documents/Bioinformatics/src/lcs_gui
 ac_ct_CC = gcc
 ac_ct_DUMPBIN = 
 am__include = include
@@ -243,7 +243,7 @@ host_vendor = pc
 htmldir = ${docdir}
 includedir = ${prefix}/include
 infodir = ${datarootdir}/info
-install_sh = ${SHELL} /home/akihiro/Documents/Bioinformatics/src/lcs_gui/install-sh
+install_sh = ${SHELL} /home/data/Documents/Bioinformatics/src/lcs_gui/install-sh
 libdir = ${exec_prefix}/lib
 libexecdir = ${exec_prefix}/libexec
 localedir = ${datarootdir}/locale
@@ -258,12 +258,12 @@ program_transform_name = s,x,x,
 psdir = ${docdir}
 sbindir = ${exec_prefix}/sbin
 sharedstatedir = ${prefix}/com
-srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
+srcdir = /home/data/Documents/Bioinformatics/src/lcs_gui
 sysconfdir = ${prefix}/etc
 target_alias = 
 top_build_prefix = 
 top_builddir = .
-top_srcdir = /home/akihiro/Documents/Bioinformatics/src/lcs_gui
+top_srcdir = /home/data/Documents/Bioinformatics/src/lcs_gui
 SUBDIRS = src po man
 lcs_docdir = ${prefix}/doc/lcs
 lcs_doc_DATA = \
@@ -284,7 +284,12 @@ EXTRA_DIST = $(lcs_doc_DATA) \
 	icon/lcs.png \
 	man/lcs.1 \
 	manual/lcs/C/lcs.xml \
-	manual/lcs/C/figures/lcs_window.png
+	manual/lcs/C/figures/lcs_window.gif \
+	manual/lcs/C/figures/lcs_chromatography.gif \
+	manual/lcs/C/figures/lcs_chromatography_nuc.gif \
+	manual/lcs/C/figures/lcs_report.gif \
+	manual/lcs/C/figures/lcs_matrix.gif \
+	manual/lcs/C/figures/MG235-1xp3a_ts3_cn4.gif
 
 DISTCLEANFILES = intltool-extract \
 	intltool-merge \

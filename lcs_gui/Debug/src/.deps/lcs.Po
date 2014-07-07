@@ -1,4 +1,4 @@
-lcs.o: /home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.c \
+lcs.o: /home/data/Documents/Bioinformatics/src/lcs_gui/src/lcs.c \
  /usr/include/stdio.h /usr/include/features.h /usr/include/bits/predefs.h \
  /usr/include/sys/cdefs.h /usr/include/bits/wordsize.h \
  /usr/include/gnu/stubs.h /usr/include/gnu/stubs-32.h \
@@ -15,7 +15,8 @@ lcs.o: /home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.c \
  /usr/include/bits/pthreadtypes.h /usr/include/alloca.h \
  /usr/include/string.h /usr/include/xlocale.h /usr/include/malloc.h \
  /usr/include/sys/stat.h /usr/include/bits/stat.h /usr/include/ctype.h \
- /home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.h
+ /home/data/Documents/Bioinformatics/src/lcs_gui/src/lcs.h \
+ /home/data/Documents/Bioinformatics/src/lcs_gui/src/hmm.h
 
 /usr/include/stdio.h:
 
@@ -87,4 +88,6 @@ lcs.o: /home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.c \
 
 /usr/include/ctype.h:
 
-/home/akihiro/Documents/Bioinformatics/src/lcs_gui/src/lcs.h:
+/home/data/Documents/Bioinformatics/src/lcs_gui/src/lcs.h:
+
+/home/data/Documents/Bioinformatics/src/lcs_gui/src/hmm.h:

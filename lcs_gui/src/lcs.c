@@ -1064,6 +1064,7 @@ int Procedure(
 	long start_j;
 	long i;					/* Loop counter i             */
 	long j;					/* Loop counter i             */
+	long n;					/* Load of a thread           */
 
 	long   ident_cnt;			/* Counter of Identify number */
 	double ident_rate;			/* Rate of Identify number    */
@@ -1193,11 +1194,15 @@ int Procedure(
 	pthread_mutex_init(&mutex,NULL);
 
         while( cnt <= (jnum-2) * (inum-2) ){
+						/* Load of a thread           */
+		n = 0;
 						/* Diagonally calling         */
                 for( j = start_j, i = start_i;
                      j >= 1 && i <= (inum-2);
                      j--, i++
                 ){
+						/* Increment a load           */
+			n++;
 						/* Synchronous threads        */
 			if( thread[threads_cnt] != -1 ){
 
@@ -1216,9 +1221,17 @@ int Procedure(
 				//pthread_detach( thread[threads_cnt] );
 				thread[threads_cnt] = -1;
 			}
+						/* Increments                 */
+			cnt++;
+
+			if( ((n % THREAD_NUM) != 0) || (n == 0)){
+						/* Case of no create thread   */
+				continue;
+			}
 						/* Set arguments for thread   */
-			args[threads_cnt].i = i;
-			args[threads_cnt].j = j;
+			args[threads_cnt].n = THREAD_NUM;
+			args[threads_cnt].i = i + 1;
+			args[threads_cnt].j = j - 1;
 			args[threads_cnt].type = compare_mode;
 			args[threads_cnt].mode = alignment_mode;
 			args[threads_cnt].v = v;
@@ -1228,12 +1241,12 @@ int Procedure(
 			args[threads_cnt].bp = bp;
 			args[threads_cnt].inum = inum - 2;
 			args[threads_cnt].jnum = jnum - 2;
-
+	
 						/* Create to thread           */
 			ret = (int)pthread_create(
 				&thread[threads_cnt],
 				NULL,
-				&calc_matrix,
+				divide_threads,
 				&args[threads_cnt]
 			);
 						/* Error of create_thread()   */
@@ -1251,9 +1264,66 @@ int Procedure(
 						/* Continue                   */
 				threads_cnt = 0;
 			}
+						/* Reset n value              */
+			n = 0;
+		}
+						/* Synchronous threads        */
+		if( thread[threads_cnt] != -1 ){
+
+						/* Wait for a completed thread*/
+			ret = pthread_join(
+				thread[threads_cnt],
+				NULL
+				//status[threads_cnt]
+			);
+						/* Error terminate            */
+			if( ret != 0 ){
+				printf( "Thread(%d) ",threads_cnt);
+				printf( "error terminated.\n");
+			}
+						/* Detach thread              */
+			//pthread_detach( thread[threads_cnt] );
+			thread[threads_cnt] = -1;
+		}
 						/* Increments                 */
-			cnt++;
-                }
+		if( ((n % THREAD_NUM) != 0) && (n != 0) ){
+						/* Set arguments for thread   */
+			args[threads_cnt].n = n % THREAD_NUM;
+			args[threads_cnt].i = i;
+			args[threads_cnt].j = j;
+			args[threads_cnt].type = compare_mode;
+			args[threads_cnt].mode = alignment_mode;
+			args[threads_cnt].v = v;
+			args[threads_cnt].w = w;
+			args[threads_cnt].eg = eg;
+			args[threads_cnt].ss = ss;
+			args[threads_cnt].bp = bp;
+			args[threads_cnt].inum = inum - 2;
+			args[threads_cnt].jnum = jnum - 2;
+	
+						/* Create to thread           */
+			ret = (int)pthread_create(
+				&thread[threads_cnt],
+				NULL,
+				divide_threads,
+				&args[threads_cnt]
+			);
+						/* Error of create_thread()   */
+			if( ret != 0 ){
+				printf( "Thread(%d) create failed.\n",
+					threads_cnt
+				);
+				break;
+			}
+						/* Threads_cnt initialize     */
+			if( threads_cnt < THREADS - 1 ){
+						/* Next thread                */
+				threads_cnt++;
+			}else{
+						/* Continue                   */
+				threads_cnt = 0;
+			}
+		}
 						/* Synchronous threads        */
 		for( threads_cnt = 0; threads_cnt < THREADS ; threads_cnt++ ){
 
@@ -1325,7 +1395,7 @@ int Procedure(
 		w_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		ans    = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		eg_arr = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
-		ss_arr = (long *)malloc((sizeof(long) * (inum + jnum))     );
+		ss_arr = (long *)malloc((sizeof(long) * (inum + jnum)) + 1 );
 		bp_arr = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 						/* +1 mean footer NULL       */
 
@@ -1334,7 +1404,7 @@ int Procedure(
 		memset( w_ans, '\0', (sizeof(char) * (inum + jnum)) + 1 );
 		memset(   ans, '\0', (sizeof(char) * (inum + jnum)) + 1 );
 		memset( eg_arr,'\0', (sizeof(char) * (inum + jnum)) + 1 );
-		memset( ss_arr,  0 , (sizeof(long) * (inum + jnum))     );
+		memset( ss_arr,  0 , (sizeof(long) * (inum + jnum)) + 1 );
 		memset( bp_arr,'\0', (sizeof(char) * (inum + jnum)) + 1 );
 
 	}else{
@@ -1359,7 +1429,7 @@ int Procedure(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
 		ss_arr = (long *)malloc(
-		        (sizeof(long) * (local_inum + local_jnum))
+		        (sizeof(long) * (local_inum + local_jnum)) + 1
 		);
 		bp_arr = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
@@ -1386,7 +1456,7 @@ int Procedure(
 
 		memset( ss_arr,
 			0,
-			(sizeof(long) * (local_inum + local_jnum))
+			(sizeof(long) * (local_inum + local_jnum)) + 1
 		);
 
 		memset( bp_arr,
@@ -2435,10 +2505,6 @@ int BackTracking(
 						/* Trace to                  */
 						/*     back tracking pointer */
 	while( ( i > 0 ) || ( j > 0 ) ){
-
-		// debug write
-		//printf("%ld:%ld,%ld[%c],%c,%c\n",cnt++,i,j,bp[i][j],v[i],w[j]);
-
 						/* Set eg number             */
 		eg_arr[eg_cnt] = eg[i][j];
 						/* Counter increment         */
@@ -2686,11 +2752,11 @@ int LoadReplaceScore(){
 
 /******************************************************************************/
 /*                                                                            */
-/* Title  : Calculate matrix score for multithreads                           */
-/* Function Name : calc_matrix                                                */
+/* Title  : Devide threads                                                    */
+/* Function Name : divide_threads                                             */
 /*                                                                            */
 /* Detail : Create                                                            */
-/* Date   : 2014/03/19                                                        */
+/* Date   : 2014/06/23                                                        */
 /* Author : Akihiro Kashiwagi                                                 */
 /* E-mail : a-kashiwagi@mippi-mail.com                                        */
 /*                                                                            */
@@ -2700,7 +2766,7 @@ int LoadReplaceScore(){
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
 /*                                                                            */
-/* Date   : 2014/04/12                                                        */
+/* Date   : 2014/06/23                                                        */
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Changed for the multi thread.                                     */
 /*                                                                            */
@@ -2712,17 +2778,9 @@ int LoadReplaceScore(){
 /*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
 /******************************************************************************/
 
-void *calc_matrix( void *in_args ){
+void *divide_threads( void *in_args ){
 
 	thread_args *args;
-	long cnt;
-	long d;
-	long e;
-	long del_num;
-	long ins_num;
-	long mch_num;
-	//long local_i;
-	//long local_j;
 
 	if( in_args == NULL ){
 		return (void *)NULL;
@@ -2731,6 +2789,7 @@ void *calc_matrix( void *in_args ){
 	args = (thread_args *)in_args;
 
 #ifdef DEBUG
+	printf("   n:%ld\n", args->n);
 	printf("   i:%ld\n", args->i);
 	printf("   j:%ld\n", args->j);
 	printf("type:%d\n", args->type);
@@ -2739,9 +2798,16 @@ void *calc_matrix( void *in_args ){
 	printf("w:%s\n", args->w);
 	printf("inum:%ld\n", args->inum);
 	printf("jnum:%ld\n", args->jnum);
+	fflush(stdin);
 #endif
 						/* Check for parameter        */
 						/*       and set arguments    */
+	if( args->n < 0 ){
+		return (void *)NULL;
+	}
+						/* Set n                      */
+	long n = args->n;
+
 	if( args->i < 0 ){
 		return (void *)NULL;
 	}
@@ -2807,7 +2873,86 @@ void *calc_matrix( void *in_args ){
 	}
 						/* Set jnum                   */
 	long jnum = args->jnum;
+						/* Adjust a start point       */
+	i = i - n;
+	j = j + n;
 
+	for( n; n > 0; n--, j--, i++ ){
+						/* Loop of a cell/thread      */
+		calc_matrix(
+			i,
+			j,
+			type,
+			mode,
+			v,
+			w,
+			eg,
+			ss,
+			bp,
+			inum,
+			jnum
+		);
+	}
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Calculate matrix score for multithreads                           */
+/* Function Name : calc_matrix                                                */
+/*                                                                            */
+/* Detail : Create                                                            */
+/* Date   : 2014/03/19                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* E-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void *in_args : structure of "thread_arags" for thread arguments  */
+/*                                                                            */
+/* Output : int : return value [ 0:NORMAL, -1:ERROR ]                         */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   : 2014/04/12                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Changed for the multi thread.                                     */
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int calc_matrix(
+	long i,
+	long j,
+	int type,
+	int mode,
+	char *v,
+	char *w,
+	char **eg,
+	long **ss,
+	char **bp,
+	long inum,
+	long jnum
+){
+	long cnt;
+	long d;
+	long e;
+	long del_num;
+	long ins_num;
+	long mch_num;
+
+#ifdef DEBUG
+	printf("i:%ld\n",i);
+	printf("j:%ld\n",j);
+	printf("type:%d\n",type);
+	printf("mode:%d\n",mode);
+	printf("v:[%s]\n",v);
+	printf("w:[%s]\n",w);
+	printf("inum:%ld\n",inum);
+	printf("jnum:%ld\n",jnum);
+#endif
         switch(type){
 
         case AMINOACID:

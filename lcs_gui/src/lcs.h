@@ -88,7 +88,7 @@
 #define LOOP			1
 
 #define BUFFER_SIZE 1024
-#define REPLACESCORE_FILENAME "/etc/blosum62"
+#define REPLACESCORE_FILENAME "/home/a-kashiwagi/etc/blosum62"
 #define REPLACE_NUM 25*25
 
 #define DEF_MATCH_NUM		 10		/* Number of match            */
@@ -98,7 +98,8 @@
 						/*     affine gap penalty     */
 #define DEF_RS_NUM		 10		/* Number of Replace score    */
 						/*    amplification           */
-#define THREADS			  2		/* Number of threads          */
+#define THREADS			 50		/* Number of threads          */
+#define THREAD_NUM		 30		/* Number of cell/thread      */
 
 pthread_mutex_t mutex;				/* mutex for biggest_score    */
 long biggest_score;				/* Biggest score              */
@@ -109,6 +110,7 @@ long local_inum;				/* Number of inum             */
 long local_jnum;				/* Number of jnum             */
 						/*     for a local alignment  */
 typedef struct thread_argments{
+	long n;
         long i;
         long j;
         int type;
@@ -307,6 +309,8 @@ int hmm_scn_global(
     long *ans_end,
     double *ans_hmm
 );
+
+void *divide_threads( void *in_args );
 						/* Scan procedure of          */
 						/*  Hidden Markov Model for   */
 						/*   local search             */
@@ -321,7 +325,19 @@ int hmm_scn_local(
     double *ans_hmm
 );
 						/* LCS multi threads procedure*/
-void *calc_matrix( void *in_args );
+int calc_matrix(
+        long i, 
+        long j, 
+        int type,
+        int mode,
+        char *v,
+        char *w,
+        char **eg,
+        long **ss,
+        char **bp,
+        long inum,
+        long jnum
+);
 						/* Main function for cui main */
 int cui_main( int argc, char *argv[] );
 

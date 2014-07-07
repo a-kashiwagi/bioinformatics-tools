@@ -1,0 +1,2130 @@
+/* -*- Mode: C; indent-tabs-mode: t; c-basic-offset: 8; tab-width: 8 -*- */
+/*
+ * callbacks.c
+ *
+ * Generated anjuta and glade. and writed by Kashiwagi Akihiro.
+ *
+ * Copyright (C) Kashiwagi Akihiro 2010 <a-kashiwagi@mippi-mail.com>
+ * 
+ * LCS is free software and shareware : you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version. and you must pay 10[%] part of profit
+ * to me that case of you used this software for business.
+ * 
+ * lcs_gui is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License along
+ * with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
+#include <pthread.h>
+#include <math.h>
+#include "callbacks.h"
+
+					/* Declare GtkWidget                  */
+					/*            for each object         */
+GtkWidget *window;
+GtkWidget *vbox1;
+GtkWidget *hbox1;
+GtkWidget *scrolledwindow1;
+GtkWidget *scrolledwindow2;
+GtkWidget *textview1;
+GtkWidget *textview2;
+GtkWidget *textview3;
+GtkWidget *textview4;
+GtkWidget *textview5;
+GtkWidget *textview6;
+GtkWidget *textview7;
+GtkWidget *textview8;
+GtkWidget *comparetype0_radio;
+GtkWidget *comparetype1_radio;
+GtkWidget *comparemode0_radio;
+GtkWidget *comparemode1_radio;
+GtkWidget *alignmentmode0_radio;
+GtkWidget *alignmentmode1_radio;
+GtkWidget *gapscoremode0_radio;
+GtkWidget *gapscoremode1_radio;
+GtkWidget *label1;
+GtkWidget *label2;
+GtkWidget *Location_label;
+GtkWidget *Rate_label;
+GtkWidget *Score_label;
+GtkWidget *e_num_spin;
+GtkWidget *d_num_spin;
+GtkWidget *match_num_spin;
+GtkWidget *unmatch_num_spin;
+GtkWidget *quit_button;
+GtkWidget *exec_button;
+GtkWidget *adjustment1;
+GtkWidget *adjustment2;
+GtkWidget *adjustment3;
+GtkWidget *adjustment4;
+
+					/* Display flag                       */
+int  disp_flg = ANS_DISP_FLG;
+					/* Aligment mode                      */
+int  alignment_mode = LOCAL_ALIGNMENT;
+					/* Gap score mode                     */
+int  gapscore_mode = LINER_GAP_SCORE;
+					/* Compare mode                       */
+int  compare_mode = AMINOACID;
+					/* Sequence mode                      */
+int  sequence_mode = PARTOFSEQUENCE;
+
+					/* Number of match                    */
+long match_num = 10;
+					/* Number of unmatch                  */
+long unmatch_num = 0;
+					/* Number of gap penalty              */
+long d_num = 10;
+					/* Number of                          */
+					/*    affine gap penalty              */
+long e_num = 5;
+					/* Saving flag                        */
+int now_saving;
+
+					/* Number of Replace score            */
+					/*    amplification                   */
+long rs_num;
+					/* SourceFileName                     */
+char SourceFileName[BUFFER_SIZE];
+					/* TargetFileName                     */
+char TargetFileName[BUFFER_SIZE];
+					/* SaveFileName                       */
+char SaveFileName[BUFFER_SIZE];
+
+					/* Call back function                 */
+					/*       of object destroy            */
+void
+destroy (GtkWidget *widget, gpointer data)
+{
+					/* Call destractor                    */
+	gtk_main_quit ();
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Set object to callback area                                       */
+/* Function Name : set_object_to_callback_area()                              */
+/*                                                                            */
+/* Detail : set object to callback area                                       */
+/* Date   : 2010/09/12                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkBuilder *builder : Pointer of builder                          */
+/* Output : Rerutn code : NormalTerminate [0]                                 */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int set_objects_to_callback_area( GtkBuilder *builder ){
+
+					/* Title message                      */
+	char title_msg[BUFFER_SIZE];
+
+					/* Get window object                  */
+	window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
+
+					/* Get vbox1 object                   */
+	vbox1 = GTK_WIDGET (gtk_builder_get_object (builder, "vbox1"));
+
+					/* Get hbox1 object                   */
+	hbox1 = GTK_WIDGET (gtk_builder_get_object (builder, "hbox1"));
+
+					/* Get scrolledwindow1 object         */
+	scrolledwindow1 = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "scrolledwindow1")
+	);
+					/* Get scrolledwindow2 object         */
+	scrolledwindow2 = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "scrolledwindow2")
+	);
+					/* Get textview1 object               */
+	textview1 = GTK_WIDGET (gtk_builder_get_object (builder, "textview1"));
+
+					/* Get textview2 object               */
+	textview2 = GTK_WIDGET (gtk_builder_get_object (builder, "textview2"));
+
+					/* Get textview3 object               */
+	textview3 = GTK_WIDGET (gtk_builder_get_object (builder, "textview3"));
+
+					/* Get textview4 object               */
+	textview4 = GTK_WIDGET (gtk_builder_get_object (builder, "textview4"));
+
+					/* Get textview5 object               */
+	textview5 = GTK_WIDGET (gtk_builder_get_object (builder, "textview5"));
+
+					/* Get textview6 object               */
+	textview6 = GTK_WIDGET (gtk_builder_get_object (builder, "textview6"));
+
+					/* Get textview7 object               */
+	textview7 = GTK_WIDGET (gtk_builder_get_object (builder, "textview7"));
+
+					/* Get textview8 object               */
+	textview8 = GTK_WIDGET (gtk_builder_get_object (builder, "textview8"));
+
+					/* Get comparetype0 object            */
+	comparetype0_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "comparetype0")
+	);
+					/* Get comparetype1 object            */
+	comparetype1_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "comparetype1")
+	);
+					/* Get comparemode0 object            */
+	comparemode0_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "comparemode0")
+	);
+					/* Get comparemode1 object            */
+	comparemode1_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "comparemode1")
+	);
+					/* Get alignmentmode0 object          */
+	alignmentmode0_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "alignmentmode0")
+	);
+					/* Get alignmentmode1 object          */
+	alignmentmode1_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "alignmentmode1")
+	);
+					/* Get gapmode1 object                */
+	gapscoremode1_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "gapmode1")
+	);
+					/* Get gapmode0 object                */
+	gapscoremode0_radio = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "gapmode0")
+	);
+					/* Get label1 object                  */
+	label1 = GTK_WIDGET (gtk_builder_get_object (builder, "label1"));
+
+					/* Get label2 object                  */
+	label2 = GTK_WIDGET (gtk_builder_get_object (builder, "label2"));
+					/* Get Location object                */
+	Location_label = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "Location")
+	);
+					/* Get Rate object                    */
+	Rate_label = GTK_WIDGET (gtk_builder_get_object (builder, "Rate"));
+	
+					/* Get Score object                   */
+	Score_label = GTK_WIDGET (gtk_builder_get_object (builder, "Score"));
+
+					/* Get e_num object                   */
+	e_num_spin = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "e_num")
+	);
+					/* Get d_num object                   */
+	d_num_spin = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "d_num")
+	);
+					/* Get match_num object               */
+	match_num_spin = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "match_num")
+	);
+					/* Get unmatch_num object             */
+	unmatch_num_spin = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "unmatch_num")
+	);
+					/* Get quit                           */
+	quit_button = GTK_WIDGET (
+		gtk_builder_get_object (builder, "quit" )
+	); 
+					/* Get exec                           */
+	exec_button = GTK_WIDGET (
+		gtk_builder_get_object (builder, "exec" )
+	);
+					/* Get adjustment1 object             */
+	adjustment1 = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "adjustment1")
+	);
+					/* Get adjustment2 object             */
+	adjustment2 = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "adjustment2")
+	);
+					/* Get adjustmnet3 object             */
+	adjustment3 = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "adjustment3")
+	);
+					/* Get adjustment4 object             */
+	adjustment4 = GTK_WIDGET (
+	        gtk_builder_get_object (builder, "adjustment4")
+	);
+					/* Initialize SaveFileName            */
+	strcpy( SaveFileName, SAVEFILENAME );
+					/* Make title message                 */
+	sprintf( title_msg, "%s - %s", APP_TITLE, SaveFileName );
+					/* Set title                          */
+	gtk_window_set_title( window, title_msg );
+
+	return(0);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : On exec button clicked                                            */
+/* Function Name : on_exec_clicked()                                          */
+/*                                                                            */
+/* Detail : On exec button clicked                                            */
+/* Date   : 2010/09/12                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkWidget *widget : Pointer of button                             */
+/*        : gpointer user_data                                                */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+pthread_t thread;
+int on_thread_flg;
+
+void on_exec_clicked( GtkWidget *widget, gpointer user_data ){
+
+						/* Threading flag ON          */
+	//on_thread_flg = ON;
+						/* Call to lcs_thread()       */
+						/*                  in thread */
+	//pthread_create( &thread, NULL, (void *)lcs_thread, NULL );
+	lcs_thread();
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of lcs thread                                            */
+/* Function Name : lcs_thread()                                               */
+/*                                                                            */
+/* Detail : Call to lcs() in thread                                           */
+/* Date   : 2010/09/23                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int lcs_thread(void){
+
+					/* Pointer of sequence v              */
+	char *v;
+					/* Pointer of sequence w              */
+	char *w;
+					/* Number of i                        */
+	long inum;
+					/* Number of j                        */
+	long jnum;
+					/* Return code                        */
+	int ret;
+					/* Text buffer for work               */
+	GtkTextBuffer *work;
+					/* Text Itereter of start             */
+	GtkTextIter start;
+					/* Text Itereter of end               */
+	GtkTextIter end;
+					/* Label string for store             */
+	char label_str[BUFFER_SIZE];
+
+	// char param_text[1024];
+					/* Thread in                          */
+	on_thread_flg = ON;
+					/* Set grayed out to exec_button      */
+	gtk_widget_set_sensitive( GTK_WIDGET(exec_button), FALSE );
+	
+					/* Get label for store                */
+	strcpy( label_str, gtk_button_get_label( GTK_BUTTON(exec_button) ) );
+
+					/* Set label "Processing..."          */
+	gtk_button_set_label( GTK_BUTTON(exec_button), "Processing..." );
+
+					/* Set match number from spin button  */
+	match_num       = gtk_spin_button_get_value_as_int(
+				GTK_SPIN_BUTTON(match_num_spin)
+			);
+					/* Set unmatch number                 */
+					/*        from spin button            */
+	unmatch_num     = gtk_spin_button_get_value_as_int(
+				GTK_SPIN_BUTTON(unmatch_num_spin)
+			);
+					/* Set d number from spin button      */
+	d_num		= gtk_spin_button_get_value_as_int(
+				GTK_SPIN_BUTTON(d_num_spin)
+			);
+					/* Set e number from spin button      */
+	e_num		= gtk_spin_button_get_value_as_int(
+				GTK_SPIN_BUTTON(e_num_spin)
+			);
+					/* Set number of replace score        */
+					/*    amplification                   */
+	rs_num = 10;
+/*
+	sprintf( param_text, "%d," \
+	        "alignment_mode[%d]," \
+	        "gapscore_mode[%d]," \
+	        "compare_mode[%d]," \
+	        "sequence_mode[%d],\n" \
+	        "match_num[%d]," \
+	        "unmatch_num[%d]," \
+	        "d_num[%d]," \
+	        "e_num[%d]," \
+	        "rs_num[%d]\n",
+	        0,
+		alignment_mode,	
+		gapscore_mode,
+		compare_mode,
+		sequence_mode,
+	        match_num,
+	        unmatch_num,
+	        d_num,
+	        e_num,
+	        rs_num
+	);
+	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview2) );
+	gtk_text_buffer_set_text( work, param_text, -1 );
+*/
+						/* Set parameter to lcs scope */
+	set_lcs_param( 0,
+		alignment_mode,	
+		gapscore_mode,
+		compare_mode,
+		sequence_mode,
+	        match_num,
+	        unmatch_num,
+	        d_num,
+	        e_num,
+	        rs_num
+	);
+
+						/* Get sequence of v          */
+
+	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview1) );
+						/* get pointer of text buffer */
+
+	gtk_text_buffer_get_start_iter( work, &start );
+						/* get start iterator         */
+
+	gtk_text_buffer_get_end_iter( work, &end );
+						/* get end iterator           */
+
+	v = gtk_text_buffer_get_text( work, &start, &end, TRUE );
+						/* get string from text buffer*/
+	inum = clean_up_sequence( v );
+						/* clean up sequence string   */
+	//inum = strlen( v ) + 1;
+						/* set string length          */
+
+	
+						/* Get sequence of w          */
+
+	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview2) );
+						/* get pointer of text buffer */
+
+	gtk_text_buffer_get_start_iter( work, &start );
+						/* get start iterator         */
+
+	gtk_text_buffer_get_end_iter( work, &end );
+						/* get end iterator           */
+
+	w = gtk_text_buffer_get_text( work, &start, &end, TRUE );
+						/* get string from text buffer*/
+	jnum = clean_up_sequence( w );
+						/* clean up sequence string   */
+	//jnum = strlen( w ) + 1;
+						/* set string length          */
+
+						/* Call lcs function          */
+	ret = lcs( v, w, inum, jnum );
+
+						/* Set label to exec_button   */
+	gtk_button_set_label( GTK_BUTTON(exec_button), label_str );
+	
+					        /* Set active to exec_button  */
+	gtk_widget_set_sensitive( GTK_WIDGET(exec_button), TRUE );
+	
+						/* Thread out                 */
+	on_thread_flg = OFF;
+						/* Return code                */
+	return(ret);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Following functions is callback for each radio buttons.           */
+/* Function Name : on_[RADIO BUTTON NAME]_toggled()                           */
+/*                                                                            */
+/* Detail : Call to lcs() in thread                                           */
+/* Date   : 2010/09/23                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkRadioButton *self : Called pointer of radio_button             */
+/*        : gpointer user_data   : Non use                                    */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+						/* Call back function         */
+						/*    of comparemode 0 togged */
+void
+on_comparemode0_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set comapre_mode           */
+						/*       to Nucleotide (0)    */
+	compare_mode = NUCLEOTIDE;
+}
+
+						/* Call back function         */
+						/*    of comparemode 1 togged */
+void
+on_comparemode1_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set comapre_mode           */
+						/*       to Amino Acid (1)    */
+	compare_mode = AMINOACID;
+}
+
+						/* Call back function         */
+						/*   of sequencemode 0 togged */
+void
+on_sequencemode0_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set sequence_mode          */
+						/*   to part of sequence (0)  */
+	sequence_mode = PARTOFSEQUENCE;
+}
+
+						/* Call back function         */
+						/*   of sequencemode 1 togged */
+void
+on_sequencemode1_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set sequence_mode          */
+						/*        to all sequence (1) */
+	sequence_mode = ALLSEQUENCE;
+}
+
+						/* Call back function         */
+						/*  of alignmentmode 0 togged */
+void
+on_alignmentmode0_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set alignment_mode         */
+						/*   to global aliginment (0) */
+	alignment_mode = GLOBAL_ALIGNMENT;
+}
+
+						/* Call back function         */
+						/*  of alignmentmode 1 togged */
+void
+on_alignmentmode1_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set alignment_mode         */
+						/*     to local alignment (1) */
+	alignment_mode = LOCAL_ALIGNMENT;
+}
+
+						/* Call back function         */
+						/*  of gapscoremode 0 toggled */
+void
+on_gapscoremode0_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set gapscore_mode          */
+						/*     to liner gap score (0) */
+	gapscore_mode = LINER_GAP_SCORE;
+}
+
+						/* Call back function         */
+						/*  of gapscoremode 1 toggled */
+void
+on_gapscoremode1_toggled (GtkRadioButton *self, gpointer user_data)
+{
+						/* Set alignment_mode         */
+						/*    to affine gap score (1) */
+	gapscore_mode = AFFINE_GAP_SCORE;
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Call back on textbuf insert                                       */
+/* Function Name : on_textbuf_insert()                                        */
+/*                                                                            */
+/* Detail : Call back on textbuf insert                                       */
+/* Date   : 2010/09/18                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkWidget   *self : Pointer of text buffer                        */
+/*        : GtkTextIter *iter : Iterator of text buffer                       */
+/*        : gchar       *text : Insert text                                   */
+/*        : gint         len  : Length of insert text                         */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_textbuf_insert(
+	GtkTextBuffer *self,
+	GtkTextIter *iter,
+	gchar *text,
+	gint len
+){
+					/* General purpose counter            */
+	long cnt;
+					/* Number of offsert from start       */
+	gint offset;
+					/* Tag name                           */
+	char tagname[20];
+					/* Iterator of start                  */
+	GtkTextIter start;
+					/* Iterator of end                    */
+	GtkTextIter end;
+					/* Get offset of iter                 */
+	offset = gtk_text_iter_get_offset( iter );
+
+					/* Set iterator at start of text      */
+	gtk_text_buffer_get_iter_at_offset( self, &start, offset - len + 0 );
+
+					/* Set iterator at end of text        */
+	gtk_text_buffer_get_iter_at_offset( self, &end  , offset - len + 1 );
+
+					/* Set tag name                       */
+	for( cnt = 0; cnt < len; cnt++ ){
+
+		switch( text[cnt] ){
+					/* Set tag name of Adenine           */
+			case 'A':
+				strcpy( tagname, "Adenine");
+				break;
+					/* Set tag name of Thymine           */
+			case 'T':
+				strcpy( tagname, "Thymine");
+				break;
+					/* Set tag name of Guanine           */
+			case 'G':
+				strcpy( tagname, "Guanine");
+				break;
+					/* Set tag name of Cytosine          */
+			case 'C':
+				strcpy( tagname, "Cytosine");
+				break;
+					/* Set tag name of Phenylalane       */
+			case 'F':
+				strcpy( tagname, "Phenylalane");
+				break;
+					/* Set tag name of Leucine           */
+			case 'L':
+				strcpy( tagname, "Leucine");
+				break;
+					/* Set tag name of Serine            */
+			case 'S':
+				strcpy( tagname, "Serine");
+				break;
+					/* Set tag name of Tyrosine          */
+			case 'Y':
+				strcpy( tagname, "Tyrosine");
+				break;
+					/* Set tag name of Cysteine          */
+			/*
+			case 'C':
+				strcpy( tagname, "Cysteine");
+				break;
+			*/
+					/* Set tag name of Tryptophan        */
+			case 'W':
+				strcpy( tagname, "Tryptophan");
+				break;
+					/* Set tag name of Proline           */
+			case 'P':
+				strcpy( tagname, "Proline");
+				break;
+					/* Set tag name of Histidine         */
+			case 'H':
+				strcpy( tagname, "Histidine");
+				break;
+					/* Set tag name of Glutamine         */
+			case 'Q':
+				strcpy( tagname, "Glutamine");
+				break;
+					/* Set tag name of Arginine          */
+			case 'R':
+				strcpy( tagname, "Arginine");
+				break;
+					/* Set tag name of Isoleucine        */
+			case 'I':
+				strcpy( tagname, "Isoleucine");
+				break;
+					/* Set tag name of Methionine        */
+			case 'M':
+				strcpy( tagname, "Methionine");
+				break;
+					/* Set tag name of Threonine         */
+			/*
+			case 'T':
+				strcpy( tagname, "Threonine");
+				break;
+			*/
+					/* Set tag name of Asparagine        */
+			case 'N':
+				strcpy( tagname, "Asparagine");
+				break;
+					/* Set tag name of Lysine            */
+			case 'K':
+				strcpy( tagname, "Lysine");
+				break;
+					/* Set tag name of Valine            */
+			case 'V':
+				strcpy( tagname, "Valine");
+				break;
+					/* Set tag name of Alanine           */
+			/*
+			case 'A':
+				strcpy( tagname, "Alanine");
+				break;
+			*/
+					/* Set tag name of AsparagineAcid    */
+			case 'D':
+				strcpy( tagname, "AsparagineAcid");
+				break;
+					/* Set tag name of GlutamicAcid      */
+			case 'E':
+				strcpy( tagname, "GlutamicAcid");
+				break;
+					/* Set tag name of Glycine           */
+			/*
+			case 'G':
+				strcpy( tagname, "Glycine");
+				break;
+			*/
+					/* Set tag name of other             */
+			default:
+				strcpy( tagname, "Normal");
+				break;
+		}
+					/* Apply tag                         */
+		gtk_text_buffer_apply_tag_by_name( self, tagname, &start, &end );
+
+					/* Increment iterator                */
+		gtk_text_iter_forward_char( &start );
+		gtk_text_iter_forward_char( &end );
+	}
+}
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Get sequence function for text buffer                             */
+/* Function Name : GetSequence                                                */
+/*                                                                            */
+/* Detail :                                                                   */
+/* Date   : 2010/10/03                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* E-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : char *filename : Target file name                                 */
+/*          char *buff : Buffer of data of sequence                           */
+/*                                                                            */
+/* Output : long : [ Count of loaded charactar : Normal Terminate ]           */
+/*                 [ -1                        : Error            ]           */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+long GetSequenceForTextBuffer( char *filename, char *buff ){
+
+	FILE *fp;				/* File pointer               */
+	long cnt;				/* Counter                    */
+	long in_char;				/* In character               */
+	long column_cnt;			/* Column counter             */
+	
+	fp = fopen( filename, "r" );		/* File open                  */
+	if( fp == NULL ){			/* Error                      */
+		return(-1);
+	}
+	
+	in_char = fgetc( fp );			/* Get a character from file  */
+	cnt = 0;				/* Counter initialize         */
+	column_cnt = 0;
+	
+	while( in_char != EOF ){
+	
+		in_char = toupper( in_char );	/* Convert to upper           */
+
+		buff[cnt] = in_char;		/* Copy to buffer             */
+		cnt++;				/* Counter increment          */
+
+		if( column_cnt == COLUMN_LIMIT ){
+						/* Case of column limit to LF */
+			buff[cnt] = '\n';
+			cnt++;
+
+			column_cnt = 0;
+
+		}else if( in_char == '\n' ){
+						/* Case of LF                 */
+						/*        to counter reset    */
+			column_cnt = 0;
+		}else{
+						/* Other charactar            */
+						/*    to counter increment    */
+			column_cnt++;
+		}
+		
+		in_char = fgetc( fp );		/* Get next character         */
+	}
+
+	buff[cnt] = '\0';			/* Set null at footer         */
+	
+	fclose( fp );				/* File close                 */
+	return(cnt + 1);			/* Normal terminate           */
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Store source file name from file select dialog                    */
+/* Function Name : store_srcfilename()                                        */
+/*                                                                            */
+/* Detail : Store source file name from file select dialog                    */
+/*          and read source file.                                             */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkWidget    *self : Pointer of text buffer                       */
+/*        : gpointer user_data : Pointer of gtk_file_selection                */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void store_srcfilename( GtkWidget *self, gpointer user_data ){
+
+					/* Pointer of file selection dialog   */
+	GtkWidget *fileselector;
+					/* Converted file name                */
+	char *fname;
+                                        /* for store bytes_read parameter     */
+        gsize *bytes_read;
+                                        /* for store bytes_write parameter    */
+        gsize *bytes_write;
+                                        /* for store error parameter          */
+        GError **error;
+
+					/* Cast to GtkWidget                  */
+	fileselector = GTK_WIDGET( user_data );
+					/* Convert to UTF-8                   */ 
+					/*       from GLib file name encoding */
+	fname = g_filename_to_utf8(
+					/* Get file name                      */ 
+	 				/*         from file selection dialog */
+	        gtk_file_selection_get_filename(
+		        GTK_FILE_SELECTION( fileselector )
+		),
+	        -1,
+	        bytes_read,
+	        bytes_write,
+	        error
+	);
+					/* Store filename                     */
+	strcpy( SourceFileName, fname );
+					/* Load file to text view             */
+	LoadFileToTextView( SourceFileName, textview1 );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Store target file name from file select dialog                    */
+/* Function Name : store_srcfilename()                                        */
+/*                                                                            */
+/* Detail : Store target file name from file select dialog                    */
+/*          and read target file.                                             */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkWidget    *self : Pointer of text buffer                       */
+/*        : gpointer user_data : Pointer of gtk_file_selection                */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void store_trgfilename( GtkWidget *widget, gpointer user_data ){
+
+					/* Pointer of file selection dialog   */
+	GtkWidget *fileselector;
+					/* Pointer for sequence string        */
+	char *sequence;
+					/* Converted file name                */
+	char *fname;
+                                        /* for store bytes_read parameter     */
+        gsize *bytes_read;
+                                        /* for store bytes_write parameter    */
+        gsize *bytes_write;
+                                        /* for store error parameter          */
+        GError **error;
+
+					/* Cast to GtkWidget                  */
+	fileselector = GTK_WIDGET( user_data );
+					/* Convert to UTF-8                   */ 
+					/*       from GLib file name encoding */
+	fname = g_filename_to_utf8(
+					/* Get file name                      */ 
+	 				/*         from file selection dialog */
+	        gtk_file_selection_get_filename(
+		        GTK_FILE_SELECTION( fileselector )
+		),
+	        -1,
+	        bytes_read,
+	        bytes_write,
+	        error
+	);
+					/* Store filename                     */
+	strcpy( TargetFileName, fname );
+					/* Load file to text view             */
+	LoadFileToTextView( TargetFileName, textview2 );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Store save file name from file select dialog                      */
+/* Function Name : save_srcfilename()                                         */
+/*                                                                            */
+/* Detail : Store save file name from file select dialog                      */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkWidget    *self : Pointer of text buffer                       */
+/*        : gpointer user_data : Pointer of gtk_file_selection                */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void store_savefilename( GtkWidget *widget, gpointer user_data ){
+
+					/* Pointer of file selection dialog   */
+	GtkWidget *fileselector;
+					/* File size                          */
+	long filesize;
+					/* Pointer for sequence string        */
+	char *sequence;
+
+					/* For function of g_filename_to_utf8 */
+
+					/* Converted file name                */
+	char *fname;
+					/* for store bytes_read parameter     */
+	gsize *bytes_read;
+					/* for store bytes_write parameter    */
+	gsize *bytes_write;
+					/* for store error parameter          */
+	GError **error;
+					/* Pointer of buffer for textview     */
+	GtkTextBuffer *buf;
+					/* Title message                      */
+	char title_msg[BUFFER_SIZE];
+
+					/* Cast to GtkWidget                  */
+	fileselector = GTK_WIDGET( user_data );
+					/* Convert to UTF-8                   */ 
+					/*       from GLib file name encoding */
+	fname = g_filename_to_utf8(
+					/* Get file name                      */ 
+	 				/*         from file selection dialog */
+	        gtk_file_selection_get_filename(
+		        GTK_FILE_SELECTION( fileselector )
+		),
+	        -1,
+	        bytes_read,
+	        bytes_write,
+	        error
+	);
+					/* Store filename                     */
+	strcpy( SaveFileName, fname );
+					/* Make title message                 */
+	sprintf( title_msg, "%s [%s]", APP_TITLE, SaveFileName );
+					/* Set title                          */
+	gtk_window_set_title( window, title_msg );
+					/* Save file                          */
+	SaveFile();
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Call back from menu of file when activate SourceFileOpen          */
+/* Function Name : on_OpenSrc_item_activate()                                 */
+/*                                                                            */
+/* Detail : Call back from menu of file when activate SourceFileOpen          */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Pointer of text buffer                   */
+/*        : gpointer user_data     :                                          */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_OpenSrc_item_activate (GtkImageMenuItem *self, gpointer user_data){
+	
+					/* Pointer of file selection dialog   */
+	GtkWidget *fileselector;
+					/* Create new file selection dialog   */
+	fileselector = gtk_file_selection_new(
+	        "Please select SOURCE file."
+	);
+					/* Set signal connect                 */
+					/*         to store_srcfilename       */
+					/*       from file selection dialog   */
+	g_signal_connect(
+	        GTK_FILE_SELECTION( fileselector )->ok_button,
+	        "clicked",
+	        G_CALLBACK( store_srcfilename ),
+	        fileselector
+	);
+					/* Set signal connect                 */
+					/*          when push OK button       */
+	g_signal_connect_swapped(
+	        GTK_FILE_SELECTION( fileselector )->ok_button,
+	        "clicked",
+	        G_CALLBACK( gtk_widget_destroy ),
+	        fileselector
+	);
+					/* Set signal connect                 */
+					/*          when push CANCEL button   */
+	g_signal_connect_swapped(
+	        GTK_FILE_SELECTION( fileselector )->cancel_button,
+	        "clicked",
+	        G_CALLBACK( gtk_widget_destroy ),
+	        fileselector
+	);
+
+	if( SourceFileName[0] != '\0' ){
+					/* Set default directory and file     */
+		gtk_file_selection_set_filename(
+		        fileselector,
+		        SourceFileName
+		);
+	}
+					/* Show dialog                        */
+	gtk_widget_show( fileselector );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Call back from menu of file when activate TargetFileOpen          */
+/* Function Name : on_OpenSrc_item_activate()                                 */
+/*                                                                            */
+/* Detail : Call back from menu of file when activate TargetFileOpen          */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Pointer of text buffer                   */
+/*        : gpointer user_data     :                                          */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_OpenTrg_item_activate (GtkImageMenuItem *self, gpointer user_data){
+	
+					/* Pointer of file selection dialog   */
+	GtkWidget *fileselector;
+
+					/* Create new file selection dialog   */
+	fileselector = gtk_file_selection_new(
+	        "Please select TARGET file."
+	);
+					/* Set signal connect                 */
+					/*         to store_trgfilename       */
+					/*       from file selection dialog   */
+	g_signal_connect(
+	        GTK_FILE_SELECTION( fileselector )->ok_button,
+	        "clicked",
+	        G_CALLBACK( store_trgfilename ),
+	        fileselector
+	);
+					/* Set signal connect                 */
+					/*          when push OK button       */
+	g_signal_connect_swapped(
+	        GTK_FILE_SELECTION( fileselector )->ok_button,
+	        "clicked",
+	        G_CALLBACK( gtk_widget_destroy ),
+	        fileselector
+	);
+					/* Set signal connect                 */
+					/*          when push CANCEL button   */
+	g_signal_connect_swapped(
+	        GTK_FILE_SELECTION( fileselector )->cancel_button,
+	        "clicked",
+	        G_CALLBACK( gtk_widget_destroy ),
+	        fileselector
+	);
+
+	if( TargetFileName[0] != '\0' ){
+					/* Set default directory and file     */
+		gtk_file_selection_set_filename(
+		        fileselector,
+		        TargetFileName
+		);
+	}
+					/* Show dialog                        */
+	gtk_widget_show( fileselector );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Call back from menu of file when activate SaveFileOpen Item       */
+/* Function Name : on_Save_item_activate()                                    */
+/*                                                                            */
+/* Detail : Call function SaveFile()                                          */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Pointer of text buffer                   */
+/*        : gpointer user_data     :                                          */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_Save_item_activate (GtkImageMenuItem *self, gpointer user_data){
+
+						/* Call SaveFile() function   */
+	SaveFile();
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Save file                                                         */
+/* Function Name : SaveFile()                                                 */
+/*                                                                            */
+/* Detail : The file [SaveFileName] save.                                     */
+/* Date   : 2010/10/17                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int SaveFile( void ){
+						/* Text buffer for work       */
+	GtkTextBuffer *work;
+						/* Pointer of message dialog  */
+	GtkWidget *msgbox;
+						/* Text Itereter of start     */
+	GtkTextIter start;
+						/* Text Itereter of end       */
+	GtkTextIter end;
+						/* Pointer of anser sequence  */
+	char *ans;
+						/* Counter                    */
+	long cnt;
+						/* File pointer               */
+	FILE *fp;
+
+						/* Check for file exist       */
+	if( ChkFileSize( SaveFileName ) != -1 ){
+						/* Case of file existed       */
+
+						/* Output error dialog        */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_QUESTION,
+			GTK_BUTTONS_YES_NO,
+			"This file existed.\n\n"\
+		        "file : [%s].\n\n"\
+		        "Will you over write?",
+			SaveFileName
+		);
+						/* Will not over write        */
+		if( gtk_dialog_run( GTK_DIALOG( msgbox ) ) == GTK_RESPONSE_NO ){
+
+						/* Window close               */
+			gtk_widget_destroy( msgbox );
+						/* Open file selection dialog */
+			on_SaveAs_item_activate( NULL, NULL );
+						/* Return with error terminate*/
+			return(0);
+		}
+						/* Window close               */
+		gtk_widget_destroy( msgbox );
+	}
+						/* Get sequence of answer     */
+
+	work = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview3) );
+						/* get pointer of text buffer */
+
+	gtk_text_buffer_get_start_iter( work, &start );
+						/* get start iterator         */
+
+	gtk_text_buffer_get_end_iter( work, &end );
+						/* get end iterator           */
+
+	ans = gtk_text_buffer_get_text( work, &start, &end, TRUE );
+						/* get string from text buffer*/
+	clean_up_sequence( ans );
+						/* Clean up answer sequence   */
+
+	fp = fopen( SaveFileName, "w" );
+						/* File open                  */
+	if( fp == NULL ){
+						/* Case of error when return  */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+			"Can not open %s.",
+			SaveFileName
+		);
+		gtk_dialog_run( GTK_DIALOG( msgbox ) );
+		gtk_widget_destroy( msgbox );
+		return;
+	}
+						/* Counter reset              */
+	cnt = 0;
+						/* Loop of output             */
+	while( ans[cnt] != '\0' ){
+						/* Put sequence               */
+		fputc( ans[cnt], fp );
+						/* Counter increment          */
+		cnt++;
+	}
+						/* File close                 */
+	fclose( fp );
+						/* Set modifiy TRUE           */
+	gtk_text_buffer_set_modified( work, FALSE );
+						/* Saving flag OFF            */
+	now_saving == OFF;
+						/* Return                     */
+						/*      with normal terminate */
+	return(0);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Call back from menu of file when activate SaveAsFileOpen          */
+/* Function Name : on_Save_item_activate()                                    */
+/*                                                                            */
+/* Detail : Call back from menu of file when activate SaveAsFileOpen          */
+/* Date   : 2010/10/02                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Pointer of text buffer                   */
+/*        : gpointer user_data     :                                          */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_SaveAs_item_activate (GtkImageMenuItem *self, gpointer user_data){
+
+					/* Pointer of file selection dialog   */
+	GtkWidget *fileselector;
+					/* Create new file selection dialog   */
+	fileselector = gtk_file_selection_new(
+	        "Please select or input SAVE file."
+	);
+					/* Set signal connect                 */
+					/*         to store_trgfilename       */
+					/*       from file selection dialog   */
+	g_signal_connect(
+	        GTK_FILE_SELECTION( fileselector )->ok_button,
+	        "clicked",
+	        G_CALLBACK( store_savefilename ),
+	        fileselector
+	);
+					/* Set signal connect                 */
+					/*          when push OK button       */
+	g_signal_connect_swapped(
+	        GTK_FILE_SELECTION( fileselector )->ok_button,
+	        "clicked",
+	        G_CALLBACK( gtk_widget_destroy ),
+	        fileselector
+	);
+					/* Set signal connect                 */
+					/*          when push CANCEL button   */
+	g_signal_connect_swapped(
+	        GTK_FILE_SELECTION( fileselector )->cancel_button,
+	        "clicked",
+	        G_CALLBACK( gtk_widget_destroy ),
+	        fileselector
+	);
+	
+	if( SaveFileName[0] != '\0' ){
+					/* Set default directory and file     */
+		gtk_file_selection_set_filename(
+		        fileselector,
+		        SaveFileName
+		);
+	}
+					/* Show dialog                        */
+	gtk_widget_show( fileselector );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Call back function on about item active                           */
+/* Function Name : on_Abou_item_activate()                                    */
+/*                                                                            */
+/* Detail : Call back from menu of help when activate about                   */
+/* Date   : 2010/10/10                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Pointer of text buffer                   */
+/*        : gpointer user_data     :                                          */
+/*        :                                                                   */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_About_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+						/* Authors                    */
+	gchar *authors[] = { "Akihiro Kashiwagi", NULL };
+
+						/* Open about dialog          */
+	gtk_show_about_dialog(
+		NULL,
+						/* Logo icon name             */
+	        "logo-icon-name","lcs",
+						/* Program name               */
+		"program-name", "LCS",
+						/* Version                    */
+		"version", "0.1",
+						/* License                    */
+		"license",
+		"LCS is free software and shareware:\n"\
+		"    under GPLv3, LGPLv2(part of Gtk+).\n"\
+		"    and case of business use, "\
+		"Please 10[%] part of profit pay for me.\n"\
+		"    because I must eat bread every day. "\
+		"(see Genesis 3:19)\n"\
+		"    please you will inquire to me "\
+		"about detail information.\n\n"\
+		"Copyright(C) 2010 Akihiro Kashiwagi\n"\
+		"    e-mail: a-kashiwagi@mippi-mail.com\n\n"\
+		"and I thanks for YHWH GOD, your creation is wonderful.",
+
+						/* Web site                   */
+		"website", "http://sites.google.com/site/kashiwagiakihiro/",
+
+						/* Copyright                  */
+		"copyright", "Copyright(C) Akihiro Kashiwagi",
+
+						/* Authors                    */
+		// "authors", authors,
+						/* Comment                    */
+	        "comments",
+	        "This program is calculate Longest Common Subsequence.\n"\
+	        "for Nucleotide and Amino acide sequence.",
+
+		NULL
+	);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Get a focusing Text View                                          */
+/* Function Name : FocusingTextView()                                         */
+/*                                                                            */
+/* Detail : Get a focusing Text View in textview1,textview2 and textview3.    */
+/* Date   : 2010/10/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/* Output : GtkTextView * : Pointer of focusing(Selecting) text view          */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+GtkTextView *FocusingTextView( void ){
+						/* Pointer of Text View       */
+	GtkTextView *tv;
+	
+	if( GTK_WIDGET_HAS_FOCUS( textview1 ) == TRUE ){
+						/* textview1 have focus       */
+		tv = textview1;
+		
+	}else 	if( GTK_WIDGET_HAS_FOCUS( textview2 ) == TRUE ){
+						/* textview2 have focus       */
+		tv = textview2;
+		
+	}else 	if( GTK_WIDGET_HAS_FOCUS( textview3 ) == TRUE ){
+						/* textview3 have focus       */
+		tv = textview3;
+	}
+						/* Pointer of textview return */
+	return( tv );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback Function of on cut item activate                         */
+/* Function Name : on_Cut_item_activate()                                     */
+/*                                                                            */
+/* Detail : Selection charactars cut to clipboard                             */
+/* Date   : 2010/10/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Called pointer of menu item              */
+/*          gpointer user_data     : Non use                                  */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void
+on_Cut_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+	GtkTextBuffer *buffer;
+	GtkClipboard *clip;
+						/* Get selection clipboard    */
+	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+						/* Get focusing textbuffer    */
+	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+						/* Cut from buffer            */
+						/*    and Paste to clipboard  */
+	gtk_text_buffer_cut_clipboard( buffer, clip, TRUE );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback Function of on copy item activate                        */
+/* Function Name : on_Copy_item_activate()                                    */
+/*                                                                            */
+/* Detail : Selection charactars copy to clipboard                            */
+/* Date   : 2010/10/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Called pointer of menu item              */
+/*          gpointer user_data     : Non use                                  */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void
+on_Copy_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+	GtkTextBuffer *buffer;
+	GtkClipboard *clip;
+						/* Get selection clipboard    */
+	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+						/* Get focusing textbuffer    */
+	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+						/* Copy from buffer           */
+						/*    and Paste to clipboard  */
+	gtk_text_buffer_copy_clipboard( buffer, clip );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback Function of on paste item activate                       */
+/* Function Name : on_Paste_item_activate()                                   */
+/*                                                                            */
+/* Detail : Selection charactars paste from clipboard                         */
+/* Date   : 2010/10/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Called pointer of menu item              */
+/*          gpointer user_data     : Non use                                  */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void
+on_Paste_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+	GtkTextBuffer *buffer;
+	GtkClipboard *clip;
+						/* Get selection clipboard    */
+	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+						/* Get focusing textbuffer    */
+	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+						/* Paste to buffer            */
+						/*           from clipboard   */
+	gtk_text_buffer_paste_clipboard( buffer, clip, NULL, TRUE );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback Function of on delete item activate                      */
+/* Function Name : on_delete_item_activate()                                  */
+/*                                                                            */
+/* Detail : Selection charactars delete                                       */
+/* Date   : 2010/10/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Called pointer of menu item              */
+/*          gpointer user_data     : Non use                                  */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void
+on_Delete_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+	GtkTextBuffer *buffer;
+	GtkClipboard *clip;
+	GtkTextIter start;
+	GtkTextIter end;
+						/* Get selection clipboard    */
+	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+						/* Get focusing textbuffer    */
+	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+						/* Delete selection string    */
+	gtk_text_buffer_delete_selection( buffer, clip, TRUE );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback Function of on Select All item activate                  */
+/* Function Name : on_SelectAll_item_activate()                               */
+/*                                                                            */
+/* Detail : Selection all charactars                                          */
+/* Date   : 2010/10/16                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Called pointer of menu item              */
+/*          gpointer user_data     : Non use                                  */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+void
+on_SelectAll_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+	GtkTextBuffer *buffer;
+	GtkClipboard *clip;
+	GtkTextIter start;
+	GtkTextIter end;
+						/* Get selection clipboard    */
+	clip = gtk_clipboard_get( GDK_SELECTION_CLIPBOARD );
+						/* Get focusing textbuffer    */
+	buffer = gtk_text_view_get_buffer( FocusingTextView() );
+						/* Get start position         */
+	gtk_text_buffer_get_start_iter( buffer, &start);
+						/* Get end position           */
+	gtk_text_buffer_get_end_iter( buffer, &end );
+						/* Selection All              */
+	gtk_text_buffer_select_range( buffer, &start, &end );
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Load file to text view                                            */
+/* Function Name : LoadFileToTextView()                                       */
+/*                                                                            */
+/* Detail : Load file to text view.                                           */
+/* Date   : 2010/10/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/* Output : GtkTextView * : Pointer of focusing(Selecting) text view          */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int LoadFileToTextView( char *filename, GtkTextView *textview ){
+
+					/* Pointer of message dialog          */
+	GtkWidget *msgbox;
+					/* File size                          */
+	long filesize;
+					/* Pointer for sequence string        */
+	char *sequence;
+                                        /* Pointer of buffer for textview     */
+        GtkTextBuffer *buf;
+					/* Buffer for work                    */
+        char *work;
+					/* Counter                            */
+        int cnt;
+					/* Converted file name                */
+ 	char *fname;
+	                                /* for store bytes_read parameter     */
+        gsize *bytes_read;
+                                        /* for store bytes_write parameter    */
+        gsize *bytes_write;
+                                        /* for store error parameter          */
+        GError **error;
+
+
+					/* Counter reset                      */
+	cnt = 0;
+	while( filename[cnt] != '\0' ){
+					/* Change charactar from CR/LF to NULL*/
+		if( iscntrl(filename[cnt] ) ){
+			filename[cnt] = '\0';
+			break;
+		}
+		cnt++;
+	}
+					/* Search data type header            */
+					/*    ex. file://, http://, ftp://    */
+	work = strstr( filename, "://" );
+	if( work != NULL ){
+					/* Adjustment start point             */
+					/*    to skip over data type header   */
+		strcpy( filename, &work[3] );
+	}
+					/* Convert to UTF-8                   */ 
+					/*       from GLib file name encoding */
+	fname = g_filename_from_utf8(
+		filename,
+		-1,
+		bytes_read,
+		bytes_write,
+		error
+	);
+					/* Check for file size                */
+	filesize = ChkFileSize( fname );
+	if( filesize == -1 ){
+					/* Case of error when return          */
+
+					/* Output error dialog                */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+			"Can not open [%s].",
+			fname
+		);
+		gtk_dialog_run( GTK_DIALOG( msgbox ) );
+		gtk_widget_destroy( msgbox );
+					/* Return with error terminate        */
+		return(-1);
+
+	}else if( filesize > WARNINGSIZE ){
+					/* Case of file size big              */
+					/*             than WARNINGSIZE       */
+
+					/* Output error dialog                */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_QUESTION,
+			GTK_BUTTONS_YES_NO,
+			"This file is too big "\
+		        "and need a many time for load.\n\n"\
+		        "file : [%s].\n\n"\
+		        "Will you load?",
+			fname
+		);
+					/* Confirm file size big              */
+		if( gtk_dialog_run( GTK_DIALOG( msgbox ) ) == GTK_RESPONSE_NO ){
+
+					/* Window close                       */
+			gtk_widget_destroy( msgbox );
+					/* Return with error terminate        */
+			return(-1);
+		}
+					/* Window close                       */
+		gtk_widget_destroy( msgbox );
+	}
+					/* Allocate memory                    */
+	sequence = malloc(
+	        sizeof(char) * filesize
+	        + ((int)floor(filesize / COLUMN_LIMIT) + 1)
+					/* Added size for LF, each row        */
+	);
+	if( sequence == NULL ){
+					/* Case of error when return          */
+
+					/* Output error dialog                */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+			"Deficient memory."
+		);
+		gtk_dialog_run( GTK_DIALOG( msgbox ) );
+		gtk_widget_destroy( msgbox );
+					/* Return with error terminate        */
+		return(-1);
+	}
+					/* Get sequence data                  */
+	if( GetSequenceForTextBuffer( fname, sequence ) == -1 ){
+					/* Case of error when return          */
+
+					/* Output error dialog                */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_ERROR,
+			GTK_BUTTONS_CLOSE,
+			"Can not read sequence file. [%s]",
+			fname
+		);
+		gtk_dialog_run( GTK_DIALOG( msgbox ) );
+		gtk_widget_destroy( msgbox );
+					/* Return with error terminate        */
+		return(-1);
+	}
+					/* Get pointer of buffer              */
+	buf = gtk_text_view_get_buffer(	GTK_TEXT_VIEW(textview) );
+					/* Set message                        */
+	gtk_text_buffer_set_text( buf, sequence, -1 );
+					/* free to memory                     */
+	free(sequence);
+					/* Return with normal terminate       */
+	return(0);
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback function on textview1 drag data received.                */
+/* Function Name : on_textview1_drag_data_received()                          */
+/*                                                                            */
+/* Detail : Get drop file name and load file to textview1                     */
+/* Date   : 2010/10/16                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/*          GtkTextView *self : Pointer of textview                           */
+/*          GdkDragContext *drag_context : Pointer of DragContext struct      */
+/*          gint arg1 : non use                                               */
+/*          gint arg2 : non use                                               */
+/*          GtkSelectionData *data : Pointer of SelectionData struct          */
+/*          guint arg4 : non use                                              */
+/*          guint arg5 : non use                                              */
+/*          gpointer user_data : non use                                      */
+/*                                                                            */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_textview1_drag_data_received (
+        GtkTextView *self,
+        GdkDragContext *drag_context,
+        gint arg1,
+        gint arg2,
+        GtkSelectionData *data,
+        guint arg4,
+        guint arg5,
+        gpointer user_data
+){
+					/* Converted file name                */
+ 	char *fname;
+                                        /* for store bytes_read parameter     */
+        gsize *bytes_read;
+                                        /* for store bytes_write parameter    */
+        gsize *bytes_write;
+                                        /* for store error parameter          */
+        GError **error;
+
+	if(( data->length >= 0 ) && ( data->format == 8)){
+
+		if( drag_context->action == GDK_ACTION_COPY){
+
+					/* Convert to UTF-8                   */ 
+					/*       from GLib file name encoding */
+			fname = g_filename_to_utf8(
+				data->data,
+				-1,
+				bytes_read,
+				bytes_write,
+				error
+			);
+					/* Store filename                     */
+					/* with convert from uri to utf8      */
+			strcpy(
+				SourceFileName,
+				g_filename_from_uri( fname, NULL, NULL )
+			);
+
+			data->data = &SourceFileName;
+					/* Load file to textview              */
+			LoadFileToTextView( SourceFileName, textview1 );
+		}
+					/* Procedure for drag finished,       */
+					/*        "succsess" and "not delete" */
+		gtk_drag_finish( drag_context, TRUE, FALSE, time );
+		return;
+	}
+					/* Procedure for drag finished        */
+					/*        "fail" and "not delete"     */
+	gtk_drag_finish( drag_context, FALSE, FALSE, time );
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback function on textview2 drag data received.                */
+/* Function Name : on_textview2_drag_data_received()                          */
+/*                                                                            */
+/* Detail : Get drop file name and load file to textview2                     */
+/* Date   : 2010/10/16                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/*          GtkTextView *self : Pointer of textview                           */
+/*          GdkDragContext *drag_context : Pointer of DragContext struct      */
+/*          gint arg1 : non use                                               */
+/*          gint arg2 : non use                                               */
+/*          GtkSelectionData *data : Pointer of SelectionData struct          */
+/*          guint arg4 : non use                                              */
+/*          guint arg5 : non use                                              */
+/*          gpointer user_data : non use                                      */
+/*                                                                            */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void on_textview2_drag_data_received (
+        GtkTextView *self,
+        GdkDragContext *drag_context,
+        gint arg1,
+        gint arg2,
+        GtkSelectionData *data,
+        guint arg4,
+        guint arg5,
+        gpointer user_data
+){
+					/* Converted file name                */
+	char *fname;
+                                        /* for store bytes_read parameter     */
+        gsize *bytes_read;
+                                        /* for store bytes_write parameter    */
+        gsize *bytes_write;
+                                        /* for store error parameter          */
+        GError **error;
+
+	if(( data->length >= 0 ) && ( data->format == 8)){
+
+		if( drag_context->action == GDK_ACTION_COPY){
+
+					/* Convert to UTF-8                   */ 
+					/*       from GLib file name encoding */
+			fname = g_filename_to_utf8(
+				data->data,
+				-1,
+				bytes_read,
+				bytes_write,
+				error
+			);
+					/* Store filename                     */
+			strcpy(
+			        TargetFileName,
+			        g_filename_from_uri( fname, NULL, NULL )
+			);
+					/* Load file to textview              */
+			LoadFileToTextView( TargetFileName, textview2 );
+		}
+					/* Procedure for drag finished,       */
+					/*        "succsess" and "not delete" */
+		gtk_drag_finish( drag_context, TRUE, FALSE, time );
+		return;
+	}
+					/* Procedure for drag finished        */
+					/*        "fail" and "not delete"     */
+	gtk_drag_finish( drag_context, FALSE, FALSE, time );
+}
+
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of LCS quit                                              */
+/* Function Name : lcs_quit()                                                 */
+/*                                                                            */
+/* Detail : Check textview3 modified, put comfirm dialog, save and quit.      */
+/* Date   : 2010/10/17                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void                                                              */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void lcs_quit( void ){
+						/* Pointer of Text Buffer     */
+	GtkTextBuffer *textbuffer;
+						/* Pointer of GtkMessageDialog*/
+	GtkWidget *msgbox;
+						/* Get pointer of textbuffer  */
+	textbuffer = gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview3) );
+
+						/* Check modified flag        */
+	if( gtk_text_buffer_get_modified( textbuffer ) == TRUE ){
+
+						/* Case of modified           */
+
+						/* Output question dialog     */
+		msgbox = gtk_message_dialog_new(
+			window,
+			GTK_DIALOG_DESTROY_WITH_PARENT,
+			GTK_MESSAGE_QUESTION,
+			GTK_BUTTONS_YES_NO,
+			"You didn't save yet.\n\n"\
+			"file : [%s]\n\n"\
+			"Will you quit?",
+			SaveFileName
+		);
+
+		if( gtk_dialog_run(GTK_DIALOG(msgbox)) == GTK_RESPONSE_YES ){
+
+						/* Cancel quit                */
+			gtk_widget_destroy( msgbox );
+
+		}else{
+						/* Don't save                 */
+			gtk_widget_destroy( msgbox );
+			return;
+		}
+	}
+						/* Application exit           */
+	gtk_main_quit();
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Function of callback on_Help_item_activate                        */
+/* Function Name : on_Help_item_activate()                                    */
+/*                                                                            */
+/* Detail : Start up help(lcs.xml) for yelp.                                  */
+/* Date   : 2010/10/22                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem * : Pointer of called GtkImageMenuItem           */
+/* Output : non use                                                           */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void
+on_Help_item_activate (GtkImageMenuItem *self, gpointer user_data)
+{
+					/* fork "/bin/bash HELPFILE"          */
+	system( HELPFILE);
+}
