@@ -62,6 +62,7 @@
 //For testing propose use the local (not installed) ui file
 //#define UI_FILE PACKAGE_DATA_DIR"/lcs/ui/lcs_gui.ui"
 #define UI_FILE "src/lcs_gui.ui"
+//#define UI_FILE "/home/a-kashiwagi/etc/lcs_gui.ui"
 
 						/* Function create window     */
 GtkWidget *create_window ( void );
@@ -106,7 +107,8 @@ int PrintOutForTextViwe(
         long  ident_cnt,
         double ident_rate,
         long score,
-        int   compare_mode
+        int compare_mode,
+	int matrix_on
 );
 
 					/* declare pointer of each object     */
@@ -1382,6 +1384,10 @@ void put_message( char *str ){
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Modify calculation method of v_lc_to and w_lc_to.                 */
 /*                                                                            */
+/* Date   : 2014/12/08                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Modified Adjustment output location of information.               */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -1417,7 +1423,8 @@ int PrintOutForTextView(
         long   ident_cnt,
         double ident_rate,
         long  score,
-        int   compare_mode
+        int   compare_mode,
+	int matrix_on
 ){
 	int ret;				/* Return value              */
 	long cnt;				/* Counter                   */
@@ -1428,6 +1435,8 @@ int PrintOutForTextView(
 	GtkTextBuffer *textbuf;			/* TextBuffer for answer     */
 	GtkTextIter    start;			/* TextIter at start         */
 	GtkTextIter    end;			/* TextIter at start         */
+	int x_min;				/* x axsis minimum           */
+	int y_min;				/* y axsis munimum           */
 
 						/* Variable for digit        */
 	float calc_digit;
@@ -1620,10 +1629,8 @@ int PrintOutForTextView(
 			cnt_buf, ident_cnt, ident_rate, score / 10
 		);
 		strcat( stored_ans, buf );
-		/*
-		gtk_text_buffer_insert_at_cursor( textbuf, buf, strlen(buf) );
-		*/
 
+		//gtk_text_buffer_insert_at_cursor( textbuf, buf, strlen(buf) );
 	}
 						/* Output of EditGraph       */
 	if( disp_flg & EG_DISP_FLG ){
@@ -1739,6 +1746,73 @@ int PrintOutForTextView(
 				textbuf, buf, strlen(buf)
 			);	
 		}
+	}
+
+						/* Copy to stored buffer      */
+						/* from calculated edit graph */
+	for( i = 0; i < inum; i++ ){
+		for( j = 0; j < jnum; j++ ){
+			stored_eg[i][j] = eg[i][j];
+		}
+	}
+						/* Copy to stored buffer from */
+						/* calculated similarly score */
+	for( i = 0; i < inum; i++ ){
+		for( j = 0; j < jnum; j++ ){
+			stored_ss[i][j] = ss[i][j];
+		}
+	}
+						/* Copy to stored buffer      */
+						/* from calculated            */
+						/* back traking pointer       */
+	for( i = 0; i < inum; i++ ){
+		for( j = 0; j < jnum; j++ ){
+			stored_bp[i][j] = bp[i][j];
+		}
+	}
+						/* Set stored arrary pointer  */
+						/*     to scope in callback.c */
+	ret = set_ans_str(
+		&v,
+		&w,
+		&stored_v,
+	        &stored_w,
+	        &stored_gap,
+	        &stored_ans,
+	        &stored_eg,
+	        &stored_ss,
+	        &stored_bp,
+	        inum,
+	        jnum
+	);
+
+	if( ret != 0 ){
+						/* Error return               */
+		return(-1);
+	}
+						/* Put identify count         */
+	sprintf( buf, "No.%ld-%ld", v_lc_from, v_lc_to );
+	gtk_label_set_text( GTK_LABEL(Location_label), buf );
+
+						/* Put identify rate          */
+	sprintf(buf,
+		"ID %.0f%c(%ld)",
+	        ident_rate * 100,
+		'%',
+	        ident_cnt
+	);
+	gtk_label_set_text( GTK_LABEL(Rate_label), buf );
+
+						/* Put score                  */
+	sprintf( buf, "SCR %ld", score / 10 );
+	gtk_label_set_text( GTK_LABEL(Score_label), buf );
+
+	if(matrix_on == OFF){
+						/* Leave Gtk threads          */
+		gdk_flush();
+		gdk_threads_leave();
+	
+		return(0);
 	}
 						/* Output of report           */
 
@@ -1867,68 +1941,80 @@ int PrintOutForTextView(
 	}
 						/* Copy to stored buffer      */
 						/* from calculated edit graph */
-	for( i = 0; i < inum; i++ ){
-		for( j = 0; j < jnum; j++ ){
-			stored_eg[i][j] = eg[i][j];
-		}
-	}
+	//for( i = 0; i < inum; i++ ){
+	//	for( j = 0; j < jnum; j++ ){
+	//		stored_eg[i][j] = eg[i][j];
+	//	}
+	//}
 						/* Copy to stored buffer from */
 						/* calculated similarly score */
-	for( i = 0; i < inum; i++ ){
-		for( j = 0; j < jnum; j++ ){
-			stored_ss[i][j] = ss[i][j];
-		}
-	}
+	//for( i = 0; i < inum; i++ ){
+	//	for( j = 0; j < jnum; j++ ){
+	//		stored_ss[i][j] = ss[i][j];
+	//	}
+	//}
 						/* Copy to stored buffer      */
 						/* from calculated            */
 						/* back traking pointer       */
-	for( i = 0; i < inum; i++ ){
-		for( j = 0; j < jnum; j++ ){
-			stored_bp[i][j] = bp[i][j];
-		}
-	}
+	//for( i = 0; i < inum; i++ ){
+	//	for( j = 0; j < jnum; j++ ){
+	//		stored_bp[i][j] = bp[i][j];
+	//	}
+	//}
 						/* Set stored arrary pointer  */
 						/*     to scope in callback.c */
-	ret = set_ans_str(
-		&v,
-		&w,
-		&stored_v,
-	        &stored_w,
-	        &stored_gap,
-	        &stored_ans,
-	        &stored_eg,
-	        &stored_ss,
-	        &stored_bp,
-	        inum,
-	        jnum
-	);
+	//ret = set_ans_str(
+	//	&v,
+	//	&w,
+	//	&stored_v,
+	//      &stored_w,
+	//      &stored_gap,
+	//      &stored_ans,
+	//      &stored_eg,
+	//      &stored_ss,
+	//      &stored_bp,
+	//      inum,
+	//      jnum
+	//);
 
-	if( ret != 0 ){
+	//if( ret != 0 ){
 						/* Error return               */
-		return(-1);
-	}
+	//	return(-1);
+	//}
 						/* Put identify count         */
-	sprintf( buf, "No.%ld-%ld", v_lc_from, v_lc_to );
-	gtk_label_set_text( GTK_LABEL(Location_label), buf );
+	//sprintf( buf, "No.%ld-%ld", v_lc_from, v_lc_to );
+	//gtk_label_set_text( GTK_LABEL(Location_label), buf );
 
 						/* Put identify rate          */
-	sprintf(buf,
-		"ID %.0f%c(%ld)",
-	        ident_rate * 100,
-		'%',
-	        ident_cnt
-	);
-	gtk_label_set_text( GTK_LABEL(Rate_label), buf );
+	//sprintf(buf,
+	//	"ID %.0f%c(%ld)",
+	//      ident_rate * 100,
+	//	'%',
+	//      ident_cnt
+	//);
+	//gtk_label_set_text( GTK_LABEL(Rate_label), buf );
 
 						/* Put score                  */
-	sprintf( buf, "SCR %ld", score / 10 );
-	gtk_label_set_text( GTK_LABEL(Score_label), buf );
+	//sprintf( buf, "SCR %ld", score / 10 );
+	//gtk_label_set_text( GTK_LABEL(Score_label), buf );
 
+						/* Set mininum sizes          */
+	if(inum <= 200){
+		x_min = 200 - inum;
+	}else{
+		x_min = 50;
+	}
+
+	if(jnum <= 180){
+		y_min = 180 - jnum;
+	}else{
+		y_min = 50;
+	}
 						/* Resize drawing area        */
 	gtk_drawing_area_size(
 		GTK_DRAWING_AREA(drawingArea1),
-		(gint)inum + 50,
-		(gint)jnum + 50
+		(gint)inum + x_min,
+		(gint)jnum + y_min 
 	);
 						/* Set background color(white)*/
 						/*            of drawing area */
@@ -1947,8 +2033,8 @@ int PrintOutForTextView(
 	}
 	pmap = gdk_pixmap_new(
 		NULL,
-	        (gint)inum + 50,
-	        (gint)jnum + 50,
+	        (gint)inum + x_min,
+	        (gint)jnum + y_min,
 	        24
 	);
 

@@ -54,6 +54,8 @@ GtkWidget *textview5;
 GtkWidget *textview6;
 GtkWidget *textview7;
 GtkWidget *textview8;
+					/* For result                         */
+GtkWidget *notebook1;
 					/* For source sequence                */
 GtkTextBuffer *textbuf1;
 					/* For target sequence                */
@@ -146,6 +148,8 @@ long d_num = DEF_D_NUM;
 					/* Number of                          */
 					/*    affine gap penalty              */
 long e_num = DEF_E_NUM;
+					/* Select Matrix Output               */
+int matrix_on = ON;
 					/* Number of threshold for matrix     */
 double threshold_num = MATRIXTHRESHOLD;
 					/* Number of continuity for matrix    */
@@ -447,7 +451,7 @@ destroy (GtkWidget *widget, gpointer data)
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
-/* Deteil :                                                                   */
+/* Deteil :    I                                                               */
 /*                                                                            */
 /*-------+---------+---------+---------+---------+---------+---------+--------*/
 /*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
@@ -505,6 +509,16 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 	scrolledwindow2 = GTK_WIDGET (
 	    gtk_builder_get_object (builder, "scrolledwindow2")
 	);
+					/* Get notebook1 object               */
+	notebook1 = GTK_WIDGET (
+	    gtk_builder_get_object (builder, "notebook1")
+	);
+					/* Remove repot tab                   */
+	//gtk_notebook_remove_page(notebook1, 1);
+
+					/* Remove matrix tab                  */
+	//gtk_notebook_remove_page(notebook1, 1);
+
 					/* Get textview1 object               */
 	textview1 = GTK_WIDGET (gtk_builder_get_object (builder, "textview1"));
 
@@ -531,7 +545,7 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 
 					/* Get text buffer 1                  */
 	textbuf1 = GTK_TEXT_BUFFER(
-	        gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview1) )
+		gtk_text_view_get_buffer( GTK_TEXT_VIEW(textview1) )
 	);
 					/* Get text buffer 2                  */
 	textbuf2 = GTK_TEXT_BUFFER(
@@ -871,6 +885,7 @@ int lcs_thread(void){
 		scan_mode,
 		compare_mode,
 		sequence_mode,
+	        matrix_on,
 	        match_num,
 	        unmatch_num,
 	        d_num,
@@ -1401,6 +1416,7 @@ void on_textbuf_insert(
 		gtk_text_iter_forward_char( &end );
 	}
 }
+
 /******************************************************************************/
 /*                                                                            */
 /* Title  : Get sequence function for text buffer                             */
@@ -1419,6 +1435,10 @@ void on_textbuf_insert(
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
 /*                                                                            */
+/* Date   : 2014.11.28                                                        */
+/* Author : Akihiro Kahsiwagi                                                 */
+/* Deteil : Add procedure that skip to FASTA Header                           */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -1433,6 +1453,7 @@ long GetSequenceForTextBuffer( char *filename, char *buff ){
 	long cnt;				/* Counter                    */
 	long in_char;				/* In character               */
 	long column_cnt;			/* Column counter             */
+	int head_flg;
 	
 	fp = fopen( filename, "r" );		/* File open                  */
 	if( fp == NULL ){			/* Error                      */
@@ -1442,13 +1463,17 @@ long GetSequenceForTextBuffer( char *filename, char *buff ){
 	in_char = fgetc( fp );			/* Get a character from file  */
 	cnt = 0;				/* Counter initialize         */
 	column_cnt = 0;
+	head_flg = 0;
 	
 	while( in_char != EOF ){
 	
-		in_char = toupper( in_char );	/* Convert to upper           */
+		if( in_char != '>' && head_flg != 1 && in_char != '\n' ){
 
-		buff[cnt] = in_char;		/* Copy to buffer             */
-		cnt++;				/* Counter increment          */
+			in_char = toupper( in_char );
+						/* Convert to upper           */
+			buff[cnt] = in_char;	/* Copy to buffer             */
+			cnt++;			/* Counter increment          */
+		}
 
 		if( column_cnt == COLUMN_LIMIT ){
 						/* Case of column limit to LF */
@@ -1461,6 +1486,11 @@ long GetSequenceForTextBuffer( char *filename, char *buff ){
 						/* Case of LF                 */
 						/*        to counter reset    */
 			column_cnt = 0;
+			head_flg = 0;
+
+		}else if( in_char == '>' ){
+
+			head_flg = 1;
 		}else{
 						/* Other charactar            */
 						/*    to counter increment    */
@@ -2035,92 +2065,94 @@ int SaveFile( void ){
 						/* Set modifiy TRUE           */
 	gtk_text_buffer_set_modified( GTK_TEXT_BUFFER(textbuf3), FALSE );
 
-
+	
 					/* Matrix save to file                */
-
+	if( matrix_on == ON ){
 						/* Get save file name         */
-	strcpy(fname_for_pb, SaveFileName);
+		strcpy(fname_for_pb, SaveFileName);
 						/* Added suffix               */
-	strcat(fname_for_pb, ".png");
+		strcat(fname_for_pb, ".png");
 					/* Convert to File system encoding    */
 					/*       from GLib file name encoding */
-	fname = g_filename_from_utf8(
-		fname_for_pb,
-		-1,
-		bytes_read,
-		bytes_write,
-		error
-	);
+		fname = g_filename_from_utf8(
+			fname_for_pb,
+			-1,
+			bytes_read,
+			bytes_write,
+			error
+		);
 						/* Check for file exist       */
-	if( ChkFileSize( fname ) != -1 ){
+		if( ChkFileSize( fname ) != -1 ){
 						/* Case of file existed       */
 
 						/* Output error dialog        */
-		msgbox = gtk_message_dialog_new(
-			GTK_WINDOW(window),
-			GTK_DIALOG_DESTROY_WITH_PARENT,
-			GTK_MESSAGE_QUESTION,
-			GTK_BUTTONS_YES_NO,
-			"This file existed.\n\n"\
-		        "file : [%s].\n\n"\
-		        "Will you over write?",
-			fname_for_pb
-		);
+			msgbox = gtk_message_dialog_new(
+				GTK_WINDOW(window),
+				GTK_DIALOG_DESTROY_WITH_PARENT,
+				GTK_MESSAGE_QUESTION,
+				GTK_BUTTONS_YES_NO,
+				"This file existed.\n\n"\
+				"file : [%s].\n\n"\
+				"Will you over write?",
+				fname_for_pb
+			);
 						/* Will not over write        */
-		if( gtk_dialog_run( GTK_DIALOG( msgbox ) ) == GTK_RESPONSE_NO ){
+			if( gtk_dialog_run( GTK_DIALOG( msgbox ) )
+			   == GTK_RESPONSE_NO ){
 
 						/* Window close               */
-			gtk_widget_destroy( msgbox );
+				gtk_widget_destroy( msgbox );
 						/* Open file selection dialog */
-			on_SaveAs_item_activate( NULL, NULL );
+				on_SaveAs_item_activate( NULL, NULL );
 						/* Free to fname buffer       */
-			g_free( fname );
+				g_free( fname );
 						/* Return with error terminate*/
-			return(-1);
-		}
+				return(-1);
+			}
 						/* Window close               */
-		gtk_widget_destroy( msgbox );
-	}
+			gtk_widget_destroy( msgbox );
+		}
 
 						/* Get matrix picture         */
 						/*                from pixmap */
-	if( pm != NULL ){
+		if( pm != NULL ){
 
 						/* Get size of pixmap         */
-		gdk_drawable_get_size(
-			GDK_DRAWABLE(pm),
-			&pm_width,
-			&pm_height
-		);
+			gdk_drawable_get_size(
+				GDK_DRAWABLE(pm),
+				&pm_width,
+				&pm_height
+			);
 
 						/* Get pixbuf from pixmap     */
-		pb = gdk_pixbuf_get_from_drawable(
-			NULL,
-			pm,
-			gdk_drawable_get_colormap( GDK_DRAWABLE(pm) ),
-			0,0,
-			0,0,
-			pm_width,
-			pm_height
-		);
+			pb = gdk_pixbuf_get_from_drawable(
+				NULL,
+				pm,
+				gdk_drawable_get_colormap( GDK_DRAWABLE(pm) ),
+				0,0,
+				0,0,
+				pm_width,
+				pm_height
+			);
 
-	}else{
+		}else{
 						/* If pixmap is null          */
 						/*        then pixbuf is null */
-		pb = NULL;
-	}
+			pb = NULL;
+		}
 						/* Save pixbuf to file        */
-	if( pb != NULL ){
+		if( pb != NULL ){
 	
-		gdk_pixbuf_save(
-			pb,
-			fname,
-			"png",
-			error,
-			"compression",
-			"9",
-			NULL
-		);
+			gdk_pixbuf_save(
+				pb,
+				fname,
+				"png",
+				error,
+				"compression",
+				"9",
+				NULL
+			);
+		}
 	}
 					/* Edit graph save to file            */
 
@@ -2924,6 +2956,41 @@ on_SelectAll_item_activate (GtkImageMenuItem *self, gpointer user_data)
 		gtk_text_buffer_get_end_iter( buffer, &end );
 						/* Selection All              */
 		gtk_text_buffer_select_range( buffer, &start, &end );
+	}
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Callback Function of Select Matrix Output                         */
+/* Function Name : on_matrix_on_toggled()                                     */
+/*                                                                            */
+/* Detail : Selection Matrix Output                                           */
+/* Date   : 2014/12/14                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : GtkImageMenuItem *self : Called pointer of menu item              */
+/*          gpointer user_data     : Non use                                  */
+/* Output : void                                                              */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+void
+on_matrix_on_toggled(GtkImageMenuItem *self, gpointer user_data){
+
+	if(matrix_on == ON){
+						/* Matrix ON                  */
+		matrix_on = OFF;
+	}else{
+						/* Matrix OFF                 */
+		matrix_on = ON;
 	}
 }
 

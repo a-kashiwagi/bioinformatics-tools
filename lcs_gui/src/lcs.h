@@ -88,7 +88,7 @@
 #define LOOP			1
 
 #define BUFFER_SIZE 1024
-#define REPLACESCORE_FILENAME "/home/a-kashiwagi/etc/blosum62"
+#define REPLACESCORE_FILENAME "/etc/blosum62"
 #define REPLACE_NUM 25*25
 
 #define DEF_MATCH_NUM		 10		/* Number of match            */
@@ -131,6 +131,7 @@ int set_lcs_param(
 	int  scan_mode,
 	int  compare_mode,
 	int  sequence_mode,
+    int  matrix_on,
 	long match_num,
 	long unmatch_num,
 	long d_num,
@@ -281,10 +282,11 @@ int PrintOutForTextViwe(
 	long  v_lc_to,
 	long  w_lc_from,
 	long  w_lc_to,
-        long  ident_cnt,
-        double ident_rate,
-        long score,
-        int   compare_mode
+	long  ident_cnt,
+	double ident_rate,
+	long score,
+	int compare_mode,
+	int matrix_on
 );
 						/* Load Replace Score         */
 int LoadReplaceScore();

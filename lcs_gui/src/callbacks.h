@@ -31,7 +31,7 @@
 					/* Default file name for save         */
 #define SAVEFILENAME "Untitled"
 					/* Limit of column to textbuffer      */
-#define COLUMN_LIMIT 1000
+#define COLUMN_LIMIT 80 //1000
 
 #define SPLIT_NUM 20
 					/* Do worning of Load file size       */
