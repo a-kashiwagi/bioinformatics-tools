@@ -41,6 +41,14 @@
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Added procedure that is score chromatography.                     */
 /*                                                                            */
+/* Date   : 2014/06/10                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : The LCS calculation method changed to a Multi thread procedure.   */
+/*                                                                            */
+/* Date   : 2014/12/15                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Add parameter that select a dot matrix output                     */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -55,6 +63,8 @@
 #include <malloc.h>
 #include <sys/stat.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <pthread.h>
 #include "lcs.h"
 #include "hmm.h"
 
@@ -91,8 +101,7 @@ long e_num;					/* Number of                  */
 						/*    affine gap penalty      */
 long rs_num;					/* Number of Replace score    */
 						/*    amplification           */
-int matrix_on;
-								/* Select Matrix Output		*/
+int matrix_on;					/* Select a dot matrix output */
 
 /******************************************************************************/
 /*                                                                            */
@@ -110,7 +119,7 @@ int matrix_on;
 /*          int  scan_mode      : Pre scan mode                               */
 /*          int  compare_mode   : Compare mode                                */
 /*          int  sequence_mode  : Sequence mode                               */
-/*          int  matrix_on      : Select Matrix Output                        */
+/*          int  matrix_on      : Dot matrix output                           */
 /*          long match_num      : Number of match                             */
 /*          long unmatch_num    : Number of unmatch                           */
 /*          long d_num          : Number of gap penalty                       */
@@ -121,9 +130,9 @@ int matrix_on;
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
 /*                                                                            */
-/* Date   : 2014/12/14                                                        */
+/* Date   : 2014/12/15                                                        */
 /* Author : Akihiro Kashiwagi                                                 */
-/* Deteil : Add Select Matrix Output parameter                                */
+/* Deteil : Add parameter that select dot matrix output                       */
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
@@ -140,7 +149,7 @@ int set_lcs_param(
     	int  in_scan_mode,
 	int  in_compare_mode,
 	int  in_sequence_mode,
-    int in_matrix_on,
+	int  in_matrix_on,
 	long in_match_num,
 	long in_unmatch_num,
 	long in_d_num,
@@ -183,8 +192,9 @@ int set_lcs_param(
 						/* Number of Replace score    */
 						/*    amplification           */
 	rs_num = in_rs_num;
-
+						/* Select a dot matrix output */
 	matrix_on = in_matrix_on;
+
 	return(0);
 }
 
@@ -305,7 +315,7 @@ int cui_main( int argc, char *argv[] ){
 	cnt--;
 	strcpy( SourceFileName, argv[cnt] );
 
-	for( cnt; cnt > 0; cnt-- ){
+	for(; cnt > 0; cnt-- ){
 
 		if( strcmp( argv[cnt], "-n" ) == 0 ){
 						/* Nucleotide mode            */
@@ -566,6 +576,56 @@ int lcs(
 						/*          TRNS structure    */
 	double hmm_num;				/* HMM number                 */
 
+						/* Check for parameter        */
+	if( v == NULL ){
+		return -1;
+	};
+
+	if( w == NULL ){
+		return -1;
+	}
+
+	if( inum < 0 ){
+		return -1;
+	}
+
+	if( jnum < 0 ){
+		return -1;
+	}
+                                                // Prepare threads
+	// thread = (pthread_t *)malloc(
+	// 	sizeof(pthread_t) * THREADS
+	// );
+						// Allocate threads memory
+	// if( thread == NULL ){
+	// 	printf("Can not allocate a thread memory.\n");
+	// 	return(-1);
+	// }
+
+	// args = (thread_args *)malloc(
+	// 	sizeof(thread_args) * THREADS
+	// );
+						// Allocate arguments memory
+	// if( args == NULL ){
+	// 	printf("Can not allocate an args memory.\n");
+	// 	return(-1);
+	// }
+
+	// status = (void **)malloc( sizeof(void *) * THREADS );
+
+						// Allocate status memory
+	// if( status == NULL ){
+	// 	printf("Can not allocate a status memory.\n");
+	// 	return(-1);
+	// }
+						// Initialize for threads
+	// for(	cnt = 0;
+	// 	cnt < THREADS;
+	// 	cnt++
+	// ){
+	// 	thread[cnt] = -1;
+	// }
+
 #ifdef DEBUG
 	// debug write
 	printf("In lcs(\n");
@@ -600,7 +660,6 @@ int lcs(
 		rs_num
 	);
 #endif
-
 						/* Case of Amino Acid mode    */
 						/*      or Protein mode       */
 	if( compare_mode == AMINOACID ){
@@ -618,6 +677,7 @@ int lcs(
 #ifdef DEBUG
 	// debug write
 	fprintf( stderr, "In All sequence mode\n");
+	fflush(stderr);
 #endif
 						/*   (+ 2) mean               */
 						/*   Header of space and      */
@@ -637,13 +697,12 @@ int lcs(
 		strcat( target_w_sequence, w );
 						/* Free of memory w           */
 		free(w);
-
-		/*
+#ifdef DEBUG
 		printf("all\n");
 		printf("target v :[%s]\n",target_v_sequence);
 		printf("target w :[%s]\n",target_w_sequence);
-		printf("%d:%d\n",inum,jnum);
-		*/
+		printf("%ld:%ld\n",inum,jnum);
+#endif
 						/* Call to function           */
 						/*   (+ 1) mean               */
 						/*   Header of space          */
@@ -665,8 +724,8 @@ int lcs(
 #ifdef DEBUG
 	// debug write
 	fprintf( stderr, "In Part of sequence mode\n");
+	fflush(stderr);
 #endif
-
 						/* From here is case of       */
 						/* part of sequence mode      */
 
@@ -676,6 +735,7 @@ int lcs(
 #ifdef DEBUG
 	// debug write
 	fprintf( stderr, "In hmm scan mode\n");
+	fflush(stderr);
 #endif
 						/* Set alignment mode for hmm */
 		init_hmm_procedure( alignment_mode );
@@ -764,17 +824,18 @@ int lcs(
 						/* Call to function           */
 						/*   (+ 1) mean               */
 						/*   Header of space          */
-		/* debug write
+#ifdef DEBUG
+		/* debug write */
 		printf("Procedure()\n");
 		printf("hmm mode\n");
 		printf("target v :[%s]\n",target_v_sequence);
 		printf("target_inum :%ld\n",target_inum);
 		printf("target w :[%s]\n",target_w_sequence);
 		printf("target_jnum :%ld\n",target_jnum);
-		printf("%d:%d\n",inum,jnum);
+		printf("%ld:%ld\n",inum,jnum);
 		printf("v_lc_from :%ld\n",v_lc_from);
 		printf("v_lc_to :%ld\n",v_lc_to);
-		*/
+#endif
 
 		ret = Procedure(
 			target_v_sequence,
@@ -795,8 +856,8 @@ int lcs(
 #ifdef DEBUG
 	// debug write
 	fprintf( stderr, "In identify mode\n");
+	fflush(stderr);
 #endif
-    
 						/* Check for matches          */
 						/*  by shift of v             */
 	best_match = 0;
@@ -897,7 +958,7 @@ int lcs(
 	strncpy( &target_w_sequence[1], &w[w_lc_from - 1], target_jnum );
 	free(w);				/* Free of memory w           */
 
-	/*
+#ifdef DEBUG
 	printf("part\n");
 	printf("target v :[%s]\n",target_v_sequence);
 	printf("target w :[%s]\n",target_w_sequence);
@@ -905,7 +966,7 @@ int lcs(
 	printf("v : %d,%d\n", v_lc_from, v_lc_to);
 	printf("w : %d,%d\n", w_lc_from, w_lc_to);
 	printf("%d:%d\n",target_inum,target_jnum);
-	*/
+#endif
 						/* Call to function           */
 						/*   (+ 1) mean               */
 						/*   Header of space          */
@@ -919,9 +980,12 @@ int lcs(
 		w_lc_from,
 		w_lc_to
 	);
-						/* Free target sequence       */
-	//free(target_v_sequence);
-	//free(target_w_sequence);
+
+#ifdef DEBUG
+	/* debug write */
+	printf("Leave lcs()\n");
+	fflush(stdout);
+#endif
 						/* v_ans, w_ans, bp_arr       */
 	return(0);
 }
@@ -965,6 +1029,10 @@ int lcs(
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Modify to malloc procedure and added arguments to BackTracking()  */
 /*          and PrintOutForTextView() and added array that eg_arr,ss_arr.     */
+/*                                                                            */
+/* Date   : 2014/06/10                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : The LCS calculation method changed to a Multi thread procedure.   */
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
@@ -1012,17 +1080,58 @@ int Procedure(
 	long  bpnum;				/* Number of                  */
 						/*       Back tracking arrary */
 	
-	long  local_inum;			/* inum for local alignment   */
-	long  local_jnum;			/* jnum for local alignment   */
 	long  inum_from;			/* Number of inum at start    */
 	long  jnum_from;			/* Number of jnum at start    */
                                          
+	long start_i;
+	long start_j;
 	long i;					/* Loop counter i             */
+	long j;					/* Loop counter i             */
+	long n;					/* Load of a thread           */
 
-	long ident_cnt;				/* Counter of Identify number*/
-	double ident_rate;			/* Rate of Identify number   */
-	long score;				/* Score from blosum         */
-	
+	long   ident_cnt;			/* Counter of Identify number */
+	double ident_rate;			/* Rate of Identify number    */
+	long score;				/* Score from blosum          */
+
+	pthread_t *thread;			/* Pointer for thread ID      */
+	thread_args *args;			/* Pointer for arguments      */
+	void **status;				/* Pointer for thread status  */
+	int threads_cnt;			/* Counter for threads        */
+
+	long detach_cnt = 0;
+						/* Check for parameter        */
+	if( v == NULL ){
+		return -1;
+	}
+
+	if( inum < 0 ){
+		return -1;
+	}
+
+	if( w == NULL ){
+		return -1;
+	}
+
+	if( jnum < 0 ){
+		return -1;
+	}
+
+	if( v_lc_from < 0 ){
+		return -1;
+	}
+
+	if( v_lc_to < 0 ){
+		return -1;
+	}
+
+	if( w_lc_from < 0 ){
+		return -1;
+	}
+
+	if( w_lc_to < 0 ){
+		return -1;
+	}
+
 #ifdef DEBUG
 	// debug write
 	printf("In Procedure(\n");
@@ -1043,7 +1152,6 @@ int Procedure(
 		eg[i] = malloc( sizeof(char) * jnum );
 		memset( eg[i], '\0', (sizeof(char) * jnum) );
 	}
-	
 						/* Memory allocate            */
 						/*    of Similary Score       */
 	ss = malloc( sizeof(long *) * inum );
@@ -1051,7 +1159,6 @@ int Procedure(
 		ss[i] = malloc( sizeof(long) * jnum );
 		memset( ss[i], '\0', (sizeof(long) * jnum) );
 	}
-	
 						/* Memory allocate            */
 						/*   of Back tracking pointer */
 	bp = malloc( sizeof(char *) * inum );
@@ -1059,41 +1166,259 @@ int Procedure(
 		bp[i] = malloc( sizeof(char) * jnum );
 		memset( bp[i], '\0', (sizeof(char) * jnum) );
 	}
-						/* Calculate of Weighting     */
-	if( compare_mode == AMINOACID ){
-						/* Compare by amino acid      */
-		ret = WeightingForAminoAcid( inum, jnum, v, w, eg );
-	}else{
-						/* Compare by nucleotide      */
-		ret = WeightingForNucleotide( inum, jnum, v, w, eg );
+						/* Prepare threads            */
+	thread = (pthread_t *)malloc(
+		sizeof(pthread_t) * THREADS
+	);
+						/* Allocate threads memory    */
+	if( thread == NULL ){
+		printf("Can not allocate a thread memory.\n");
+		return(-1);
 	}
+
+	args = (thread_args *)malloc(
+		sizeof(thread_args) * THREADS
+	);
+						/* Allocate arguments memory  */
+	if( args == NULL ){
+		printf("Can not allocate an args memory.\n");
+		return(-1);
+	}
+						/* Allocate status memory     */
+	status = (void **)malloc( sizeof(void *) * THREADS );
+
+	if( status == NULL ){
+		printf("Can not allocate a status memory.\n");
+		return(-1);
+	}
+						/* Initialize for threads     */
+	for(	threads_cnt = 0;
+		threads_cnt < THREADS;
+		threads_cnt++
+	){
+		thread[threads_cnt] = -1;
+	}
+						/* Initialize for values      */
+        start_j = 0;
+        start_i = 0;
+
+            cnt = 1;
+        start_j = 1;
+        start_i = 1;
+              j = 0;
+              i = 0;
+
+	threads_cnt = 0;
+						/* Init Global values         */
+	biggest_score = 0;
+	local_inum = 0;
+	local_jnum = 0;
+						/* Initialize for mutex       */
+	pthread_mutex_init(&mutex,NULL);
+
+        while( cnt <= (jnum-2) * (inum-2) ){
+						/* Load of a thread           */
+		n = 0;
+						/* Diagonally calling         */
+                for( j = start_j, i = start_i;
+                     j >= 1 && i <= (inum-2);
+                     j--, i++
+                ){
+						/* Increment a load           */
+			n++;
+						/* Synchronous threads        */
+			if( thread[threads_cnt] != -1 ){
+
+						/* Wait for a completed thread*/
+				ret = pthread_join(
+					thread[threads_cnt],
+					NULL
+					//status[threads_cnt]
+				);
+						/* Error terminate            */
+				if( ret != 0 ){
+					printf( "Thread(%d) ",threads_cnt);
+					printf( "error terminated.\n");
+				}
+						/* Detach thread              */
+				//pthread_detach( thread[threads_cnt] );
+				thread[threads_cnt] = -1;
+			}
+						/* Increments                 */
+			cnt++;
+
+			if( ((n % THREAD_NUM) != 0) || (n == 0)){
+						/* Case of no create thread   */
+				continue;
+			}
+						/* Set arguments for thread   */
+			args[threads_cnt].n = THREAD_NUM;
+			args[threads_cnt].i = i + 1;
+			args[threads_cnt].j = j - 1;
+			args[threads_cnt].type = compare_mode;
+			args[threads_cnt].mode = alignment_mode;
+			args[threads_cnt].v = v;
+			args[threads_cnt].w = w;
+			args[threads_cnt].eg = eg;
+			args[threads_cnt].ss = ss;
+			args[threads_cnt].bp = bp;
+			args[threads_cnt].inum = inum - 2;
+			args[threads_cnt].jnum = jnum - 2;
 	
-						/* Calculate                  */
-						/*   of Similary Score        */
-	if( alignment_mode == GLOBAL_ALIGNMENT ){
+						/* Create to thread           */
+			ret = (int)pthread_create(
+				&thread[threads_cnt],
+				NULL,
+				divide_threads,
+				&args[threads_cnt]
+			);
+						/* Error of create_thread()   */
+			if( ret != 0 ){
+				printf( "Thread(%d) create failed.\n",
+					threads_cnt
+				);
+				break;
+			}
+						/* Threads_cnt initialize     */
+			if( threads_cnt < THREADS - 1 ){
+						/* Next thread                */
+				threads_cnt++;
+			}else{
+						/* Continue                   */
+				threads_cnt = 0;
+			}
+						/* Reset n value              */
+			n = 0;
+		}
+						/* Synchronous threads        */
+		if( thread[threads_cnt] != -1 ){
 
-		ret = GlobalSimilaryScore( inum, jnum, eg, ss, bp );
-	}else{
+						/* Wait for a completed thread*/
+			ret = pthread_join(
+				thread[threads_cnt],
+				NULL
+				//status[threads_cnt]
+			);
+						/* Error terminate            */
+			if( ret != 0 ){
+				printf( "Thread(%d) ",threads_cnt);
+				printf( "error terminated.\n");
+			}
+						/* Detach thread              */
+			//pthread_detach( thread[threads_cnt] );
+			thread[threads_cnt] = -1;
+		}
+						/* Increments                 */
+		if( ((n % THREAD_NUM) != 0) && (n != 0) ){
+						/* Set arguments for thread   */
+			args[threads_cnt].n = n % THREAD_NUM;
+			args[threads_cnt].i = i;
+			args[threads_cnt].j = j;
+			args[threads_cnt].type = compare_mode;
+			args[threads_cnt].mode = alignment_mode;
+			args[threads_cnt].v = v;
+			args[threads_cnt].w = w;
+			args[threads_cnt].eg = eg;
+			args[threads_cnt].ss = ss;
+			args[threads_cnt].bp = bp;
+			args[threads_cnt].inum = inum - 2;
+			args[threads_cnt].jnum = jnum - 2;
+	
+						/* Create to thread           */
+			ret = (int)pthread_create(
+				&thread[threads_cnt],
+				NULL,
+				divide_threads,
+				&args[threads_cnt]
+			);
+						/* Error of create_thread()   */
+			if( ret != 0 ){
+				printf( "Thread(%d) create failed.\n",
+					threads_cnt
+				);
+				break;
+			}
+						/* Threads_cnt initialize     */
+			if( threads_cnt < THREADS - 1 ){
+						/* Next thread                */
+				threads_cnt++;
+			}else{
+						/* Continue                   */
+				threads_cnt = 0;
+			}
+		}
+						/* Synchronous threads        */
+		for( threads_cnt = 0; threads_cnt < THREADS ; threads_cnt++ ){
 
-		ret = LocalSimilaryScore( inum, jnum, eg, ss, bp,
-			&local_inum, &local_jnum
-		);
-	}
+			if( thread[threads_cnt] == -1 ){
+				continue;
+			}
+						/* Wait for a completed thread*/
+			ret = pthread_join(
+				thread[threads_cnt],
+				NULL
+			);
+						/* Error terminate            */
+			if( ret != 0 ){
+				printf( "Thread(%d) error terminated.(%ld)\n",
+					threads_cnt,
+					ret
+				);
+			}
+#ifdef DEBUG
+			else{
+				printf("%ld:pthread joined.\n",threads_cnt);
+				fflush(stdout);
+						// Detach thread
+				ret = pthread_detach( thread[threads_cnt] );
+				if( ret != 0 ){
+					printf("%ld:pthread_detach(%ld)\n",
+						detach_cnt,
+						ret
+					);
+					detach_cnt++;
+				}
+			}
+#endif
+			thread[threads_cnt] = -1;
+		}
+#ifdef DEBUG
+		printf("all thread joined.\n\n");
+		fflush(stdout);
+#endif
+						/* Initialize counter         */
+						/*            for thread      */
+		threads_cnt = 0;
 
-						/* Memory allocate of        */
-						/* v_ans, w_ans, ans, bp_arr */
+                if( start_j < (jnum-2) ){
+						/* Increment start j counter  */
+                        start_j++;
+
+                }else if( start_i < (inum-2)){
+						/* Increment start i counter  */
+                        start_i++;
+                }
+        }
+						/* Destroy for mutex          */
+	pthread_mutex_destroy(&mutex);
+
+#ifdef DEBUG
+	printf("completed pthread procedures.\n");
+	fflush(stdout);
+#endif
+						/* Memory allocate of         */
+						/* v_ans, w_ans, ans, bp_arr  */
 	if( alignment_mode == GLOBAL_ALIGNMENT ){
 
 #ifdef DEBUG
 	// debug write
 	fprintf( stderr, "In global alignment mode\n");
 #endif
-
 		v_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		w_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		ans    = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 		eg_arr = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
-		ss_arr = (long *)malloc((sizeof(long) * (inum + jnum))     );
+		ss_arr = (long *)malloc((sizeof(long) * (inum + jnum)) + 1 );
 		bp_arr = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
 						/* +1 mean footer NULL       */
 
@@ -1102,7 +1427,7 @@ int Procedure(
 		memset( w_ans, '\0', (sizeof(char) * (inum + jnum)) + 1 );
 		memset(   ans, '\0', (sizeof(char) * (inum + jnum)) + 1 );
 		memset( eg_arr,'\0', (sizeof(char) * (inum + jnum)) + 1 );
-		memset( ss_arr,  0 , (sizeof(long) * (inum + jnum))     );
+		memset( ss_arr,  0 , (sizeof(long) * (inum + jnum)) + 1 );
 		memset( bp_arr,'\0', (sizeof(char) * (inum + jnum)) + 1 );
 
 	}else{
@@ -1111,6 +1436,8 @@ int Procedure(
 	// debug write
 	fprintf( stderr, "In local alignment mode\n");
 #endif
+		local_inum += 2;
+		local_jnum += 2;
 
 		v_ans  = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
@@ -1125,7 +1452,7 @@ int Procedure(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
 		ss_arr = (long *)malloc(
-		        (sizeof(long) * (local_inum + local_jnum))
+		        (sizeof(long) * (local_inum + local_jnum)) + 1
 		);
 		bp_arr = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
@@ -1152,7 +1479,7 @@ int Procedure(
 
 		memset( ss_arr,
 			0,
-			(sizeof(long) * (local_inum + local_jnum))
+			(sizeof(long) * (local_inum + local_jnum)) + 1
 		);
 
 		memset( bp_arr,
@@ -1160,7 +1487,6 @@ int Procedure(
 			(sizeof(char) * (local_inum + local_jnum)) + 1
 		);
 	}
-
 						/* Output of                 */
 						/* Output of SimilaryScore   */
 
@@ -1197,13 +1523,13 @@ int Procedure(
 		v_lc_from = v_lc_from + inum_from;
 
 						/*  v (to)                   */
-		v_lc_to = v_lc_to - (inum - local_inum);
+		v_lc_to = v_lc_to - (inum - local_inum) - 1;
 
 						/*  w (from)                 */
 		w_lc_from = w_lc_from + jnum_from;
 
 						/*  w (to)                   */
-		w_lc_to = w_lc_to - (jnum - local_jnum);
+		w_lc_to = w_lc_to - (jnum - local_jnum) - 1;
 	}
 
 						/* Count to identities       */
@@ -1218,10 +1544,10 @@ int Procedure(
 
 	if( alignment_mode == GLOBAL_ALIGNMENT ){
 						/* Get global similarly score*/
-		score = ss[inum - 1][jnum - 1];
+		score = ss[inum - 2][jnum - 2];
 	}else{
 						/* Get local similarly score */
-		score = ss[local_inum - 1][local_jnum - 1];
+		score = ss[local_inum - 2][local_jnum - 2];
 	}
 
 #ifdef DEBUG
@@ -1262,9 +1588,9 @@ int Procedure(
 			ansnum, egnum, ssnum, bpnum,
 			v_lc_from, v_lc_to,
 			w_lc_from, w_lc_to,
-		    ident_cnt, ident_rate, score,
-		    compare_mode,
-	        matrix_on
+		        ident_cnt, ident_rate, score,
+		        compare_mode,
+			matrix_on
 		);
 	}
 					/* Free of memory Edit Graph         */
@@ -1584,6 +1910,7 @@ long GetSequence( char *filename, char *buff ){
 	FILE *fp;				/* File pointer               */
 	long cnt;				/* Counter                    */
 	long in_char;				/* In character               */
+	int head_flg;
 	
 	fp = fopen( filename, "r" );		/* File open                  */
 	if( fp == NULL ){			/* Error                      */
@@ -1594,15 +1921,28 @@ long GetSequence( char *filename, char *buff ){
 	
 	in_char = fgetc( fp );			/* Get a character from file  */
 	cnt = 0;				/* Counter initialize         */
+	head_flg = 0;
 	
 	while( in_char != EOF ){
-	
-		in_char = toupper( in_char );	/* Convert to upper           */
 
-		if( in_char != '\n' ){		/* LF skip                    */
-			buff[cnt] = in_char;	/* Copy to buffer             */
+		if(in_char != '>' && head_flg == 0 && in_char != '\n'){
+	
+			in_char = toupper( in_char );
+						/* Convert to upper           */
+						/* LF skip                    */
+			buff[cnt] = in_char;
+						/* Copy to buffer             */
 			cnt++;			/* Counter increment          */
+
+		}else if(in_char == ">"){
+
+			head_flg = 1;
+
+		}else if(in_char == "\n"){
+
+			head_flg = 0;
 		}
+
 		
 		in_char = fgetc( fp );		/* Get next character         */
 	}
@@ -2026,7 +2366,6 @@ int LocalSimilaryScore(
 	e = e_num;				/* Set affine gap penalty     */
 	biggest_score = 0;
 
-
 	for( i = 1; i < inum; i++ ){
 
 		for( j = 1; j < jnum; j++ ){
@@ -2189,8 +2528,8 @@ int BackTracking(
 						/*      backtracking pointer */
 	
  						/* Counter initialize        */
- 	i = inum - 1;
- 	j = jnum - 1;
+ 	i = inum - 2;
+ 	j = jnum - 2;
  	
  	v_cnt   = 0;
  	w_cnt   = 0;
@@ -2199,7 +2538,8 @@ int BackTracking(
 	eg_cnt  = 0;
 	ss_cnt  = 0;
  	bp_cnt  = 0;
-	
+
+	long cnt = 0;
 						/* Trace to                  */
 						/*     back tracking pointer */
 	while( ( i > 0 ) || ( j > 0 ) ){
@@ -2448,3 +2788,375 @@ int LoadReplaceScore(){
 	return( 0 );
 }
 
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Devide threads                                                    */
+/* Function Name : divide_threads                                             */
+/*                                                                            */
+/* Detail : Create                                                            */
+/* Date   : 2014/06/23                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* E-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void *in_args : structure of "thread_arags" for thread arguments  */
+/*                                                                            */
+/* Output : int : return value [ 0:NORMAL, -1:ERROR ]                         */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   : 2014/06/23                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Changed for the multi thread.                                     */
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+void *divide_threads( void *in_args ){
+
+	thread_args *args;
+
+	if( in_args == NULL ){
+		return (void *)NULL;
+	}
+
+	args = (thread_args *)in_args;
+
+#ifdef DEBUG
+	printf("   n:%ld\n", args->n);
+	printf("   i:%ld\n", args->i);
+	printf("   j:%ld\n", args->j);
+	printf("type:%d\n", args->type);
+	printf("mode:%d\n", args->mode);
+	printf("v:%s\n", args->v);
+	printf("w:%s\n", args->w);
+	printf("inum:%ld\n", args->inum);
+	printf("jnum:%ld\n", args->jnum);
+	fflush(stdin);
+#endif
+						/* Check for parameter        */
+						/*       and set arguments    */
+	if( args->n < 0 ){
+		return (void *)NULL;
+	}
+						/* Set n                      */
+	long n = args->n;
+
+	if( args->i < 0 ){
+		return (void *)NULL;
+	}
+						/* Set i                      */
+	long i = args->i;
+
+	if( args->j < 0 ){
+		return (void *)NULL;
+	}
+						/* Set j                      */
+	long j = args->j;
+
+	if( args->type != 0 && args->type != 1 ){
+		return (void *)NULL;
+	}
+						/* Set type                   */
+	int type = args->type;
+
+	if( args->mode != 0 && args->mode != 1 ){
+		return (void *)NULL;
+	}
+						/* Set mode                   */
+	int mode = args->mode;
+
+	if( args->v == NULL ){
+		return (void *)NULL;
+	}
+						/* Set v                      */
+	char *v = args->v;
+
+	if( args->w == NULL ){
+		return (void *)NULL;
+	}
+						/* Set w                      */
+	char *w = args->w;
+
+	if( args->eg == NULL ){
+		return (void *)NULL;
+	}
+						/* Set eg                     */
+	char **eg = args->eg;
+
+	if( args->ss == NULL ){
+		return (void *)NULL;
+	}
+						/* Set ss                     */
+	long **ss = args->ss;
+
+	if( args->bp == NULL ){
+		return (void *)NULL;
+	}
+						/* Set bp                     */
+	char **bp = args->bp;
+
+	if( args->inum < 0 ){
+		return (void *)NULL;
+	}
+						/* Set inum                   */
+	long inum = args->inum;
+
+	if( args->jnum < 0 ) {
+		return (void *)NULL;
+	}
+						/* Set jnum                   */
+	long jnum = args->jnum;
+						/* Adjust a start point       */
+	i = i - n;
+	j = j + n;
+
+	for( n; n > 0; n--, j--, i++ ){
+						/* Loop of a cell/thread      */
+		calc_matrix(
+			i,
+			j,
+			type,
+			mode,
+			v,
+			w,
+			eg,
+			ss,
+			bp,
+			inum,
+			jnum
+		);
+	}
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : Calculate matrix score for multithreads                           */
+/* Function Name : calc_matrix                                                */
+/*                                                                            */
+/* Detail : Create                                                            */
+/* Date   : 2014/03/19                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* E-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : void *in_args : structure of "thread_arags" for thread arguments  */
+/*        : long i        : Location of sell i                                */
+/*        : long j        : Location of sell j                                */
+/*        : int type      : A Nucleotide or A Amino Acide                     */
+/*        : int mode      : A Gloval alignment or A Local alignment           */
+/*        : char *v       : Pointer of v                                      */
+/*        : char *w       : Pointer of w                                      */
+/*        : char **eg     : Pointer of an edit graph                          */
+/*        : long **ss     : Pointer of an similarity score                    */
+/*        : char **bp     : Pointer of an backtracking                        */
+/*        : long inum     : Number of i max                                   */
+/*        : long jnum     : Number of j max                                   */
+/*                                                                            */
+/* Output : int : return value [ 0:NORMAL ]                                   */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   : 2014/04/12                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Changed for the multi thread.                                     */
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int calc_matrix(
+	long i,
+	long j,
+	int type,
+	int mode,
+	char *v,
+	char *w,
+	char **eg,
+	long **ss,
+	char **bp,
+	long inum,
+	long jnum
+){
+	long cnt;
+	long d;
+	long e;
+	long del_num;
+	long ins_num;
+	long mch_num;
+
+#ifdef DEBUG
+	printf("i:%ld\n",i);
+	printf("j:%ld\n",j);
+	printf("type:%d\n",type);
+	printf("mode:%d\n",mode);
+	printf("v:[%s]\n",v);
+	printf("w:[%s]\n",w);
+	printf("inum:%ld\n",inum);
+	printf("jnum:%ld\n",jnum);
+#endif
+        switch(type){
+
+        case AMINOACID:
+                				/* Calculate for weighting of */
+						/* amino acid                 */
+
+                for( cnt = 0; cnt < REPLACE_NUM; cnt++ ){
+
+                        if( rs[cnt].v_cd == v[i] 
+                         && rs[cnt].w_cd == w[j] ){ 
+
+                                eg[i][j] = rs[cnt].score;
+                                break;  
+                        }       
+                }       
+
+                break;  
+
+        case NUCLEOTIDE:
+                				/* Calculate for weighting of */
+						/* nucleotide                 */
+                if( v[i] == w[j] ){ 
+
+                        eg[i][j] = match_num;
+                }else{  
+
+                        eg[i][j] = unmatch_num;
+                }       
+
+                break;  
+
+        default:
+                break;  
+        }       
+
+        d = d_num;                              /* Set gap penalty            */
+        e = e_num;                              /* Set affine gap penalty     */
+
+        switch(mode){
+
+        case GLOBAL_ALIGNMENT:
+                                                /* Calculat to score          */
+
+                if( ( bp[i-1][j] == '|' )
+                  && ( gapscore_mode == AFFINE_GAP_SCORE )
+                ){
+                        del_num = ss[i-1][j] - e;
+                }else{
+                        del_num = ss[i-1][j] - d;
+                }
+
+                if( ( bp[i][j-1] == '-' )
+                  && ( gapscore_mode == AFFINE_GAP_SCORE )
+                ){
+                        ins_num = ss[i][j-1] - e;
+                }else{
+                        ins_num = ss[i][j-1] - d;
+                }
+
+                mch_num = ss[i-1][j-1] + eg[i][j];
+
+                                                /* Choice number of max       */
+                if( ( del_num >= ins_num )
+                  && ( del_num >= mch_num ) ){
+
+                                                /* Choice deletion            */
+                        ss[i][j] = del_num;
+                        bp[i][j] = '|';
+
+                }else if( ( ins_num >= del_num )
+                  && ( ins_num >= mch_num ) ){
+
+                                                /* Choice insertion           */
+                        ss[i][j] = ins_num;
+                        bp[i][j] = '-';
+
+                }else if( ( mch_num >= ins_num )
+                  && ( mch_num >= del_num ) ){
+
+                                                /* Choice mach                */
+                        ss[i][j] = mch_num;
+                        bp[i][j] = '\\';
+                }
+
+                break;
+
+        case LOCAL_ALIGNMENT:
+                                                /* Calculat to score          */
+
+                if( ( bp[i-1][j] == '|' )
+                        && ( gapscore_mode == AFFINE_GAP_SCORE )
+                ){
+                        del_num = ss[i-1][j] - e;
+                }else{
+                        del_num = ss[i-1][j] - d;
+                }
+                if( ( bp[i][j-1] == '-' )
+                        && ( gapscore_mode == AFFINE_GAP_SCORE )
+                ){
+                        ins_num = ss[i][j-1] - e;
+                }else{
+                        ins_num = ss[i][j-1] - d;
+                }
+
+                mch_num = ss[i-1][j-1] + eg[i][j];
+
+                                                /* Choice number of max       */
+                if( ( del_num >= ins_num )
+                        && ( del_num >= mch_num )
+                        && ( del_num >= 0 )
+                ){
+                                                /* Choice deletion            */
+                        ss[i][j] = del_num;
+                        bp[i][j] = '|';
+
+                }else if( ( ins_num >= del_num )
+                        && ( ins_num >= mch_num )
+                        && ( ins_num >= 0 )
+                ){
+                                                /* Choice insertion           */
+                                                /* Choice insertion           */
+                        ss[i][j] = ins_num;
+                        bp[i][j] = '-';
+
+                }else if( ( mch_num >= ins_num )
+                        && ( mch_num >= del_num )
+                        && ( mch_num >= 0 )
+                ){
+                                                /* Choice mach                */
+                        ss[i][j] = mch_num;
+                        bp[i][j] = '\\';
+
+                }else {
+                                                /* Choice zero                */
+                        ss[i][j] = 0;
+                        bp[i][j] = '*';
+                }
+						/* Replace biggest score      */
+                if( biggest_score < ss[i][j] ){
+
+			pthread_mutex_lock(&mutex);
+
+                        biggest_score = ss[i][j];
+
+			local_inum = i;
+			local_jnum = j;
+
+			pthread_mutex_unlock(&mutex);
+                }
+
+                break;
+
+        default:
+                break;
+        }
+
+	return (void *)NULL;
+}
