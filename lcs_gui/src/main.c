@@ -104,11 +104,19 @@ int PrintOutForTextViwe(
 	long  v_lc_to,
 	long  w_lc_from,
 	long  w_lc_to,
-        long  ident_cnt,
-        double ident_rate,
-        long score,
-        int compare_mode,
-	int matrix_on
+	long  ident_cnt,
+	double ident_rate,
+	long score,
+	int compare_mode,
+	int scan_mode,
+	int matrix_on,
+	int region_order,
+	long *prescan_orders_p,
+	long *prescan_v_loc_p,
+	long *prescan_w_loc_p,
+	double *prescan_hmm_orders_p,
+	long *prescan_hmm_s_loc_p,
+	long *prescan_hmm_e_loc_p
 );
 
 					/* declare pointer of each object     */
@@ -198,6 +206,12 @@ GtkAdjustment *adjustment4;
 GtkAdjustment *adjustment5;
 					/* For Continuity number for matrix   */
 GtkAdjustment *adjustment6;
+					/* For Combo box of Region            */
+GtkWidget *RegionCombo;
+					/* For List store of Region           */
+GtkListStore *regionliststore;
+					/* For Renderer of Region             */
+GtkCellRenderer *renderer;
 					/* For matrix                         */
 GtkWidget *drawingArea1;
 GdkPixmap *pmap = NULL;
@@ -302,11 +316,11 @@ create_window (	void )
 	sequencemode1_radio = GTK_WIDGET (
 	    gtk_builder_get_object (builder, "comparemode1")
 	);
-					/* Get scanmode0 object            */
+					/* Get scanmode0 object               */
 	scanmode0_radio = GTK_WIDGET (
 	    gtk_builder_get_object (builder, "scanmode0")
 	);
-					/* Get scanmode1 object            */
+					/* Get scanmode1 object               */
 	scanmode1_radio = GTK_WIDGET (
 	    gtk_builder_get_object (builder, "scanmode1")
 	);
@@ -528,7 +542,77 @@ create_window (	void )
 	drawingArea1 = GTK_WIDGET (
 	        gtk_builder_get_object (builder, "drawingarea1")
 	);
+                                        /* Get RegionCombo object             */
+        RegionCombo = GTK_WIDGET (
+                gtk_builder_get_object (builder, "RegionCombo")
+        );
+                                        /* Get RegionListStore object         */
+        regionliststore = GTK_LIST_STORE(
+                gtk_builder_get_object (builder, "regionliststore")
+        );
+					/* Set column type of list store      */
+        regionliststore = gtk_list_store_new (1, G_TYPE_STRING);
+	//gtk_list_store_set_column_types( regionliststore, 1, G_TYPE_STRING );
 
+	/*
+        gchar *SEQUENCE[] = {
+                "ATGCATGC",
+                "TGCATGCA",
+                "GCATGCAT",
+                NULL
+        };
+
+        GtkTreeIter iter;
+
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, " ", -1);
+	*/
+
+        gtk_combo_box_set_model(RegionCombo,regionliststore);
+        renderer = gtk_cell_renderer_text_new ();
+        gtk_cell_layout_pack_start (
+                GTK_CELL_LAYOUT (RegionCombo),
+                renderer,
+                FALSE
+        );
+
+        gtk_cell_layout_set_attributes (
+                GTK_CELL_LAYOUT (RegionCombo),
+                renderer,
+                "text",
+                0,
+                NULL
+        );
+
+        //gtk_combo_box_set_active (GTK_COMBO_BOX (RegionCombo), 0);
+
+	/*
+	GtkTreeIter iter;
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, SEQUENCE[0], -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, SEQUENCE[1], -1);
+        gtk_list_store_append (regionliststore, &iter);
+        gtk_list_store_set (regionliststore, &iter, 0, SEQUENCE[2], -1);
+	*/
 					/* Unreference builder object         */
 	g_object_unref (builder);
 	
@@ -1337,6 +1421,65 @@ void put_message( char *str ){
 
 /******************************************************************************/
 /*                                                                            */
+/* Title  : Count to digit                                                    */
+/* Function Name : max_digit()                                                */
+/*                                                                            */
+/* Detail : Create                                                            */
+/* Date   : 2015/04/18                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* e-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : long *num : pointer of number array                               */
+/*        : int n     : number of array                                       */
+/*                                                                            */
+/* Output : int : number of digit                                             */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int max_digit( long *num, int n ){
+
+	double max;
+					/* Max number of array                */
+	int cnt;
+					/* Counter                            */
+	int digit;
+					/* Number of digit                    */
+	max = 0;
+
+	for( cnt = 0; cnt < n; cnt++ ){
+					/* Search max item                    */
+		if( (double)num[cnt] > max ){
+			max = (double)num[cnt];
+		}
+	}
+
+	digit = 0;
+
+	while( LOOP ){
+
+		if( max < 1 ){
+					/* Count complete                     */
+			break;
+		}else{
+			max = max * 0.1;
+		}
+					/* Count up                           */
+		digit++;
+	}
+
+	return digit;
+}
+
+/******************************************************************************/
+/*                                                                            */
 /* Title  : Print out for text view                                           */
 /* Function Name : PrintOutForTextView()                                      */
 /*                                                                            */
@@ -1371,6 +1514,15 @@ void put_message( char *str ){
 /*          double ident_rate : Rate  of identities                           */
 /*          long   score      : Similary Score of blosum                      */
 /*          int  compare_mode : Sequence compare mode                         */
+/*          int  sequence_mode: Part or ALL                                   */
+/*          int  scan_mode    : Ident or HMM                                  */
+/*          int  matrix_on    : Use a dot matrix                              */
+/*          long   *prescan_orders_p     : Pointer of a number of order       */
+/*          long   *prescan_v_loc_p      : Pointer of a v locations           */
+/*          long   *prescan_w_loc_p      : Pointer of a w locations           */
+/*          double *prescan_hmm_orders_p : Pointer of a number of order(hmm)  */
+/*          long   *prescan_hmm_s_loc_p  : Pointer of a start locations(hmm)  */
+/*          long   *prescan_hmm_e_loc_p  : Pointer of a end   locations(hmm)  */
 /*                                                                            */
 /* Output : int : [ 0 : Normal Terminate ] [ -1 : Error Terminate ]           */
 /*                                                                            */
@@ -1387,6 +1539,10 @@ void put_message( char *str ){
 /* Date   : 2014/12/08                                                        */
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Modified Adjustment output location of information.               */
+/*                                                                            */
+/* Date   : 2015/04/18                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Add procedure that an prescan order.                              */
 /*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
@@ -1424,7 +1580,16 @@ int PrintOutForTextView(
         double ident_rate,
         long  score,
         int   compare_mode,
-	int matrix_on
+	int   sequence_mode,
+	int   scan_mode,
+	int matrix_on,
+	int region_order,
+	long *prescan_orders_p,
+	long *prescan_v_loc_p,
+	long *prescan_w_loc_p,
+	double *prescan_hmm_orders_p,
+	long *prescan_hmm_s_loc_p,
+	long *prescan_hmm_e_loc_p
 ){
 	int ret;				/* Return value              */
 	long cnt;				/* Counter                   */
@@ -1437,6 +1602,8 @@ int PrintOutForTextView(
 	GtkTextIter    end;			/* TextIter at start         */
 	int x_min;				/* x axsis minimum           */
 	int y_min;				/* y axsis munimum           */
+	int s_digit;
+	int e_digit;
 
 						/* Variable for digit        */
 	float calc_digit;
@@ -1462,9 +1629,145 @@ int PrintOutForTextView(
 	char **stored_bp;
 						/* Color for background      */
 	GdkColor color;
+						/* Array of pre-scan orders  */
+	long prescan_orders[PRESCNRANK];
+	long prescan_v_loc[PRESCNRANK];
+	long prescan_w_loc[PRESCNRANK];
 
+	double prescan_hmm_orders[PRESCNRANK];
+	long   prescan_hmm_s_loc[PRESCNRANK];
+	long   prescan_hmm_e_loc[PRESCNRANK];
 						/* Enter Gtk threads         */
 	gdk_threads_enter();
+						/* Iterater                  */
+						/*       for pre-scan orders */
+	GtkTreeIter iter;
+	GtkTreeIter iter_rm;
+	int active_id;
+
+	for( cnt = PRESCNRANK - 1; cnt >= 0; cnt-- ){
+
+		if( gtk_tree_model_iter_nth_child(
+			GTK_TREE_MODEL(regionliststore), &iter_rm, NULL, cnt)
+		){
+			gtk_list_store_remove (regionliststore, &iter_rm );
+		}
+	}
+						/* Copy prescan orders       */
+	if( scan_mode == HMMSCAN && sequence_mode == PARTOFSEQUENCE ){
+
+		memcpy( prescan_hmm_orders,
+			prescan_hmm_orders_p,
+			sizeof(double) * PRESCNRANK
+		);
+
+		memcpy( prescan_hmm_s_loc,
+			prescan_hmm_s_loc_p,
+			sizeof(long) * PRESCNRANK
+		);
+
+		memcpy( prescan_hmm_e_loc,
+			prescan_hmm_e_loc_p,
+			sizeof(long) * PRESCNRANK
+		);
+
+		s_digit = max_digit( prescan_hmm_s_loc, PRESCNRANK );
+		e_digit = max_digit( prescan_hmm_e_loc, PRESCNRANK );
+
+		sprintf( format_str, "%%.3f : %%0%dld(%%ld)",
+			s_digit
+		);
+
+		for( cnt = 0; cnt < PRESCNRANK; cnt++ ){
+
+			sprintf( buf, format_str,
+				prescan_hmm_orders[cnt],
+				prescan_hmm_s_loc[cnt],
+				prescan_hmm_e_loc[cnt] -
+				prescan_hmm_s_loc[cnt] + 1
+			);
+
+			gtk_list_store_append (regionliststore, &iter);
+
+			gtk_list_store_set(
+				regionliststore,
+				&iter,
+				0,
+				buf,
+				-1
+			);
+		}
+
+		if( region_order >= 0 ){
+
+			active_id = region_order;
+		}else{
+			active_id = 0;
+		}
+
+		gtk_combo_box_set_active (
+			GTK_COMBO_BOX (RegionCombo),
+			active_id
+		);
+
+	}else if( sequence_mode == PARTOFSEQUENCE ){
+
+		memcpy( prescan_orders,
+			prescan_orders_p,
+			sizeof(long) * PRESCNRANK
+		);
+
+		memcpy( prescan_v_loc,
+			prescan_v_loc_p,
+			sizeof(long) * PRESCNRANK
+		);
+
+		memcpy( prescan_w_loc,
+			prescan_w_loc_p,
+			sizeof(long) * PRESCNRANK
+		);
+
+		s_digit = max_digit( prescan_v_loc, PRESCNRANK );
+		e_digit = max_digit( prescan_w_loc, PRESCNRANK );
+
+		sprintf( format_str, "%%ld : %%0%dld(%%0%dld)",
+			s_digit, e_digit
+		);
+
+		for( cnt = 0; cnt < PRESCNRANK; cnt++ ){
+
+			sprintf(buf, format_str,
+				prescan_orders[cnt],
+				prescan_v_loc[cnt],
+				prescan_orders[cnt]
+			);
+
+			//	prescan_w_loc[cnt]
+			//);
+
+			gtk_list_store_append (regionliststore, &iter);
+
+			gtk_list_store_set(
+				regionliststore,
+				&iter,
+				0,
+				buf,
+				-1
+			);
+		}
+
+		if( region_order >= 0 ){
+
+			active_id = region_order;
+		}else{
+			active_id = 0;
+		}
+
+		gtk_combo_box_set_active (
+			GTK_COMBO_BOX (RegionCombo),
+			active_id
+		);
+	}
 
 	int disp_flg = ANS_DISP_FLG | V_DISP_FLG | GAP_DISP_FLG | W_DISP_FLG;
 						/* TextBuffer get            */
@@ -1505,12 +1808,15 @@ int PrintOutForTextView(
 	stored_v   = g_malloc(
 	        sizeof(char) * strlen(v_ans)  + 1 + BUFFER_SIZE
 	);
+
 	stored_w   = g_malloc(
 	        sizeof(char) * strlen(w_ans)  + 1 + BUFFER_SIZE
 	);
+
 	stored_gap = g_malloc(
 	        sizeof(char) * strlen(bp_arr) + 1 + BUFFER_SIZE
 	);
+
 	stored_ans = g_malloc(
 	        sizeof(char) * strlen(ans)    + 1 + BUFFER_SIZE
 	);
@@ -1518,6 +1824,7 @@ int PrintOutForTextView(
 						/* Memory allocate            */
 						/*    of Edit Graph           */
 	stored_eg = g_malloc( sizeof(char *) * inum );
+
 	for( i = 0; i < inum; i++ ){
 		stored_eg[i] = g_malloc( sizeof(char) * jnum );
 	}
@@ -1525,6 +1832,7 @@ int PrintOutForTextView(
 						/* Memory allocate            */
 						/*    of Similary Score       */
 	stored_ss = malloc( sizeof(long *) * inum );
+
 	for( i = 0; i < inum; i++ ){
 		stored_ss[i] = malloc( sizeof(long) * jnum );
 		memset( stored_ss[i], '\0', (sizeof(long) * jnum) );
@@ -1533,6 +1841,7 @@ int PrintOutForTextView(
 						/* Memory allocate            */
 						/*   of Back tracking pointer */
 	stored_bp = malloc( sizeof(char *) * inum );
+
 	for( i = 0; i < inum; i++ ){
 		stored_bp[i] = malloc( sizeof(char) * jnum );
 		memset( stored_bp[i], '\0', (sizeof(char) * jnum) );
@@ -2008,7 +2317,7 @@ int PrintOutForTextView(
 	if(jnum <= 180){
 		y_min = 180 - jnum;
 	}else{
-		y_min = 50;
+		y_min = 60;
 	}
 						/* Resize drawing area        */
 	gtk_drawing_area_size(

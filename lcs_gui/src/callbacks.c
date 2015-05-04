@@ -124,6 +124,10 @@ GtkAdjustment *adjustment6;
 GtkWidget *drawingArea1;
 					/* For matrix                         */
 GdkPixmap *pm = NULL;
+					/* For Combo box of Region            */
+GtkWidget *RegionCombo;
+					/* For List store of Region           */
+GtkListStore *regionliststore;
 
 
 					/* Display flag                       */
@@ -158,6 +162,8 @@ long continuity_num = MATRIXCONTINUITY;
 int now_saving;
 					/* Pm drawing flag                    */
 int drawing_pm_flg;
+					/* Number of active row of RegionCombo*/
+int region_order = SCAN_INIT;
 
 					/* Number of Replace score            */
 					/*    amplification                   */
@@ -670,6 +676,15 @@ int set_objects_to_callback_area( GtkBuilder *builder ){
 	drawingArea1 = GTK_WIDGET (
 	        gtk_builder_get_object (builder, "drawingarea1")
 	);
+					/* Get RegionCombo object             */
+	RegionCombo = GTK_WIDGET (
+		gtk_builder_get_object (builder, "RegionCombo")
+	);
+					/* Get RegionListStore object         */
+	regionliststore = GTK_LIST_STORE(
+		gtk_builder_get_object (builder, "regionliststore")
+	);
+
 
 					/* Initialize SaveFileName            */
 	strcpy( SaveFileName, SAVEFILENAME );
@@ -709,10 +724,11 @@ pthread_t thread_for_lcs;
 int on_thread_flg;
 
 void on_exec_clicked( GtkWidget *widget, gpointer user_data ){
-
+						/* Init and pre-scan on       */
+	region_order = SCAN_START;
 						/* Threading flag ON          */
 	on_thread_flg = ON;
-						/* Call to lcs_thread()       */
+						/* Threading flag ON          */
 						/*                  in thread */
 	pthread_create( &thread_for_lcs, NULL, (void *)lcs_thread, NULL );
 }
@@ -822,8 +838,6 @@ int lcs_thread(void){
 	rs_num = 10;
 
 #ifdef DEBUG
-	// debug write
-	printf("Before set_lcs_param()\n");
 
 	/*
 	sprintf( param_text, "%d," \
@@ -890,7 +904,8 @@ int lcs_thread(void){
 	        unmatch_num,
 	        d_num,
 	        e_num,
-	        rs_num
+	        rs_num,
+		region_order
 	);
 					/* Enter Gtk threads                  */
 	gdk_threads_enter();
@@ -1068,6 +1083,8 @@ int lcs_thread(void){
 						/* Detach this thread         */
 	pthread_detach( pthread_self() );
 						/* Return code                */
+	region_order = SCAN_END;
+
 	return(ret);
 }
 
@@ -1241,6 +1258,34 @@ on_continuityvscale_value_changed (GtkVScale *self, gpointer user_data)
 						/* Request draw               */
 		gtk_widget_queue_draw( drawingArea1 );
 	}
+}
+
+void
+on_RegionCombo_changed( GtkComboBox *combobox, gpointer data ){
+
+	if( on_thread_flg == ON ){
+						/* Case of processing         */
+		return;
+	}
+
+	if( region_order == SCAN_END ){
+						/* Case of current status     */
+						/*               is end       */
+		region_order = gtk_combo_box_get_active( RegionCombo );
+	}
+
+	if( region_order < SCAN_STANDBY ){
+						/* Case of current status     */
+						/*               is stand by  */
+		return;
+	}
+
+	region_order = gtk_combo_box_get_active( RegionCombo );
+						/* Threading flag ON          */
+	on_thread_flg = ON;
+						/* Call to lcs_thread()       */
+						/*                  in thread */
+	pthread_create( &thread_for_lcs, NULL, (void *)lcs_thread, NULL );
 }
 
 /******************************************************************************/

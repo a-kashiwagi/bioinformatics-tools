@@ -102,6 +102,8 @@ long e_num;					/* Number of                  */
 long rs_num;					/* Number of Replace score    */
 						/*    amplification           */
 int matrix_on;					/* Select a dot matrix output */
+						/* Number of selected row     */
+int region_order;				/*        of RegionCombo      */
 
 /******************************************************************************/
 /*                                                                            */
@@ -154,7 +156,8 @@ int set_lcs_param(
 	long in_unmatch_num,
 	long in_d_num,
 	long in_e_num,
-	long in_rs_num
+	long in_rs_num,
+	int  in_region_order
 ){
 
 
@@ -194,6 +197,9 @@ int set_lcs_param(
 	rs_num = in_rs_num;
 						/* Select a dot matrix output */
 	matrix_on = in_matrix_on;
+						/* Number of selected row     */
+						/*        of RegionCombo      */
+	region_order = in_region_order;
 
 	return(0);
 }
@@ -457,7 +463,18 @@ int cui_main( int argc, char *argv[] ){
 						/* Incriment of jnum,         */
 						/*   Footer of NULL.          */
 	v = (char *)malloc( sizeof(char) * SourceFileSize + 1);
+	if( v == NULL ){
+
+		printf("Can't allocate a v memory.\n");
+		return 1;
+	}
+
 	w = (char *)malloc( sizeof(char) * TargetFileSize + 1);
+	if( w == NULL ){
+
+		printf("Can't allocate a w memory.\n");
+		return 1;
+	}
 	
 						/* Zero padding               */
 	memset( v, '\0', (sizeof(char) * SourceFileSize) );
@@ -509,6 +526,249 @@ int cui_main( int argc, char *argv[] ){
 
 /******************************************************************************/
 /*                                                                            */
+/* Title  : searching a best match parts of inum                              */
+/* Function Name : num_best_matches                                           */
+/*                                                                            */
+/* Detail : searching a best match parts of inum                              */
+/* Date   : 2015/03/31                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* E-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : long inum             : number of i                               */
+/*          long jnum             : number of j                               */
+/*          char *v               : pointer of v sequence                     */
+/*          char *w               : pointer of w sequence                     */
+/*          long *humming_order   : order of humming distance                 */
+/*          long *humming_v_loc   : location of humming distance              */
+/*          long *humming_w_loc   : location of humming distance              */
+/*          long *v_lc_from_out   : start location of v                       */
+/*          long *w_lc_from_out   : start location of w                       */
+/*          long *best_match_out  : number of a best match                    */
+/*                                                                            */
+/* Output : return value [ 0 : Normal Terminate ] [ 1 : Error ]               */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int inum_best_matches(
+        long inum,
+        long jnum,
+        char *v,
+        char *w,
+        long *humming_order,
+        long *humming_v_loc,
+        long *humming_w_loc,
+	long *v_lc_from_out,
+	long *w_lc_from_out,
+	long *best_match_out
+){
+        long cnt;
+        long order_cnt;
+        long shift_cnt;
+        double ret;
+
+        double best_match;
+        long v_lc_from;
+        long w_lc_from;
+
+	best_match = *best_match_out;
+	v_lc_from  = *v_lc_from_out;
+	w_lc_from  = *w_lc_from_out;
+
+        for( cnt = 0; cnt < inum; cnt++ ){
+                                                // Call to function
+                ret = Matches(
+                        inum - cnt,
+                        jnum,
+                        &v[cnt],
+                        w
+                );
+
+                for( order_cnt = 0; order_cnt < PRESCNRANK - 2; order_cnt++ ){
+                                                // Choice biggest match
+                                                //  by shift to v
+                        if( humming_order[order_cnt] < ret ){
+
+                                for( shift_cnt = PRESCNRANK - 2;
+                                     shift_cnt >= order_cnt;
+                                     shift_cnt-- ){
+
+                                                // Store match number
+                                        best_match = ret;
+                                                // Choice sequence
+                                        v_lc_from = cnt + 1;
+                                        w_lc_from = 1;
+
+                                        humming_order[shift_cnt + 1]
+                                                = humming_order[shift_cnt];
+
+                                        humming_v_loc[shift_cnt + 1]
+                                                = humming_v_loc[shift_cnt];
+
+                                        humming_w_loc[shift_cnt + 1]
+                                                = humming_w_loc[shift_cnt];
+                                }
+
+						// Set humming order
+                                humming_order[order_cnt] = ret;
+
+						// Set location
+                                humming_v_loc[order_cnt] = v_lc_from;
+                                humming_w_loc[order_cnt] = w_lc_from;
+
+                                break;
+                        }
+                }
+        }
+
+#ifdef DEBUG
+
+	for( order_cnt = 0; order_cnt < PRESCNRANK; order_cnt++ ){
+
+						// debug write
+		printf("%ld,%ld,%ld\n",
+			humming_order[order_cnt],
+			humming_v_loc[order_cnt],
+			humming_w_loc[order_cnt]
+		);
+	}
+#endif
+						// Calculate to target number
+	*v_lc_from_out = v_lc_from;
+	*w_lc_from_out = w_lc_from;
+	*best_match_out = best_match;
+
+        return 0;
+}
+
+/******************************************************************************/
+/*                                                                            */
+/* Title  : searching a best match parts of jnum                              */
+/* Function Name : num_best_matches                                           */
+/*                                                                            */
+/* Detail : searching a best match parts of jnum                              */
+/* Date   : 2015/03/31                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* E-mail : a-kashiwagi@mippi-mail.com                                        */
+/*                                                                            */
+/* Input  : long inum             : number of i                               */
+/*          long jnum             : number of j                               */
+/*          char *v               : pointer of v sequence                     */
+/*          char *w               : pointer of w sequence                     */
+/*          long *humming_order   : order of humming distance                 */
+/*          long *humming_v_loc   : location of humming distance              */
+/*          long *humming_w_loc   : location of humming distance              */
+/*          long *v_lc_from_out   : start location of v                       */
+/*          long *w_lc_from_out   : start location of w                       */
+/*          long *best_match_out  : number of a best match                    */
+/*                                                                            */
+/* Output : return value [ 0 : Normal Terminate ] [ 1 : Error ]               */
+/*                                                                            */
+/* Replace -------------------------------------------------------------------*/
+/*                                                                            */
+/* Date   :                                                                   */
+/* Author :                                                                   */
+/* Deteil :                                                                   */
+/*                                                                            */
+/*-------+---------+---------+---------+---------+---------+---------+--------*/
+/*3456789012345678901234567890123456789012345678901234567890123456789012345678*/
+/******************************************************************************/
+
+int jnum_best_matches(
+        long inum,
+        long jnum,
+        char *v,
+        char *w,
+        long *humming_order,
+        long *humming_v_loc,
+        long *humming_w_loc,
+	long *v_lc_from_out,
+	long *w_lc_from_out,
+	long *best_match_out
+){
+        long cnt;
+        long order_cnt;
+        long shift_cnt;
+        double ret;
+
+        double best_match;
+        long v_lc_from;
+        long w_lc_from;
+
+	best_match = *best_match_out;
+	v_lc_from  = *v_lc_from_out;
+	w_lc_from  = *w_lc_from_out;
+
+        for( cnt = 0; cnt < jnum; cnt++ ){
+                                                // Call to function
+                ret = Matches(
+                        inum,
+                        jnum - cnt,
+                        v,
+                        &w[cnt]
+                );
+
+                for( order_cnt = 0; order_cnt < PRESCNRANK - 2; order_cnt++ ){
+                                                // Choice biggest match
+                        if( humming_order[order_cnt] < ret ){
+
+                                for( shift_cnt = PRESCNRANK - 2;
+                                     shift_cnt >= order_cnt;
+                                     shift_cnt-- ){
+                                                // Store match number
+                                        best_match = ret;
+                                                // Choice sequence
+                                        v_lc_from = 1;
+                                        w_lc_from = cnt + 1;
+
+                                        humming_order[shift_cnt + 1]
+                                                = humming_order[shift_cnt];
+
+                                        humming_v_loc[shift_cnt + 1]
+                                                = humming_v_loc[shift_cnt];
+
+                                        humming_w_loc[shift_cnt + 1]
+                                                = humming_w_loc[shift_cnt];
+                                }
+
+                                humming_order[order_cnt] = ret;
+                                humming_v_loc[order_cnt] = v_lc_from;
+                                humming_w_loc[order_cnt] = w_lc_from;
+
+                                break;
+                        }
+                }
+        }
+
+#ifdef DEGUG
+
+	for( order_cnt = 0; order_cnt < PRESCNRANK; order_cnt++ ){
+
+		printf("%ld,%ld,%ld\n",
+			humming_order[order_cnt],
+			humming_v_loc[order_cnt],
+			humming_w_loc[order_cnt]
+		);
+	}
+#endif
+						// Calculate to target number
+	*v_lc_from_out = v_lc_from;
+	*w_lc_from_out = w_lc_from;
+	*best_match_out = best_match;
+
+	return 0;
+}
+
+
+/******************************************************************************/
+/*                                                                            */
 /* Title  : Function of LCS                                                   */
 /* Function Name : lcs                                                        */
 /*                                                                            */
@@ -544,6 +804,10 @@ int cui_main( int argc, char *argv[] ){
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Added free(v),(w) to all sequence mode                            */
 /*                                                                            */
+/* Date   : 2015/04/18                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Add procedure that a prescan order                                */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -575,6 +839,13 @@ int lcs(
 	TRNS *tr;				/* Pointer of array of        */
 						/*          TRNS structure    */
 	double hmm_num;				/* HMM number                 */
+
+	long humming_order[PRESCNRANK];
+	long humming_v_loc[PRESCNRANK];
+	long humming_w_loc[PRESCNRANK];
+
+	long   order_cnt;
+	long   shift_cnt;
 
 						/* Check for parameter        */
 	if( v == NULL ){
@@ -683,7 +954,18 @@ int lcs(
 						/*   Header of space and      */
 						/*   Footer of NULL.          */
 		target_v_sequence = malloc( (inum) + 2 );
+		if( target_v_sequence == NULL ){
+
+			printf("Can't allocate a target_v_sequene memory.\n");
+			return 1;
+		}
+
 		target_w_sequence = malloc( (jnum) + 2 );
+		if( target_w_sequence == NULL ){
+
+			printf("Can't allocate a target_w_sequence memory.\n");
+			return 1;
+		}
 
 						/* Added to header of space   */
 		strcpy( target_v_sequence," ");
@@ -737,43 +1019,54 @@ int lcs(
 	fprintf( stderr, "In hmm scan mode\n");
 	fflush(stderr);
 #endif
+						/* -2 is initialize           */
+		if( region_order == -2 ){
 						/* Set alignment mode for hmm */
-		init_hmm_procedure( alignment_mode );
+			init_hmm_procedure( alignment_mode );
 
-		tr = NULL;
+			tr = NULL;
 						/* Initialize to tr array set */
-		tr = init_tr_set();
+			tr = init_tr_set();
 						/* Learning HMM from w        */
-		hmm_learn( w, tr );
+			hmm_learn( w, tr );
 	    					/* Scan v sequence by HMM(tr) */
-		v_lc_from = 0;
-		v_lc_to   = 0;
-		hmm_num   = 0;
+			v_lc_from = 0;
+			v_lc_to   = 0;
+			hmm_num   = 0;
 
-		hmm_scn_global(
-			v,
-			tr,
-			BESTHMM,
-			&v_lc_from,
-			&v_lc_to,
-			&hmm_num
-		);
+			hmm_scn_global(
+				v,
+				tr,
+				BESTHMM,
+				&v_lc_from,
+				&v_lc_to,
+				&hmm_num
+			);
 						/* Scan v sequence by HMM(tr) */
 	    					/*     at answer of           */
 	    					/*         hmm_scn_global()   */
-		hmm_scn_local(
-			v,
-			tr,
-			BESTHMM,
-			v_lc_from,
-			v_lc_to,
-			&v_lc_from,
-			&v_lc_to,
-			&hmm_num
-		);
+			hmm_scn_local(
+				v,
+				tr,
+				BESTHMM,
+				v_lc_from,
+				v_lc_to,
+				&v_lc_from,
+				&v_lc_to,
+				&hmm_num,
+				prescan_hmm_orders,
+				prescan_hmm_s_loc,
+				prescan_hmm_e_loc
+			);
 						/* Free memory of tr array set*/
-		tr = free_tr_set( tr );
+			tr = free_tr_set( tr );
+		}else{
 
+			best_match = prescan_hmm_orders[region_order];
+			v_lc_from = prescan_hmm_s_loc[region_order];
+			v_lc_to = prescan_hmm_e_loc[region_order];
+		}
+						/* Calculate to target number */
 						/* Set target inum, jnum      */
 	    	target_inum = v_lc_to - v_lc_from + 1;
 	    	target_jnum = jnum;
@@ -783,7 +1076,18 @@ int lcs(
 						/*   Footer of NULL.          */
 
 		target_v_sequence = malloc( (target_inum) + 2 );
+		if( target_v_sequence == NULL ){
+
+			printf("Can't allocate a target_v_sequence memory.\n");
+			return 1;
+		}
+
 		target_w_sequence = malloc( (target_jnum) + 2 );
+		if( target_w_sequence == NULL ){
+
+			printf("Can't allocate a target_w_sequence memory.\n");
+			return 1;
+		}
 
                                          
 						/* Zero padding               */
@@ -836,7 +1140,6 @@ int lcs(
 		printf("v_lc_from :%ld\n",v_lc_from);
 		printf("v_lc_to :%ld\n",v_lc_to);
 #endif
-
 		ret = Procedure(
 			target_v_sequence,
 			target_inum + 1,
@@ -858,47 +1161,61 @@ int lcs(
 	fprintf( stderr, "In identify mode\n");
 	fflush(stderr);
 #endif
+						/* -2 is initialize           */
+	if( region_order == -2 ){
 						/* Check for matches          */
 						/*  by shift of v             */
-	best_match = 0;
+		best_match = 0;
+						/* Init memory                */
+		memset( humming_order, 0, sizeof(long) * PRESCNRANK );
 
-
-	for( cnt = 0; cnt < inum; cnt++ ){
-						/* Call to function           */
-		ret = Matches(
-			inum - cnt,
-			jnum,
-			&v[cnt],
-			w
-		);
-						/* Choice biggest match       */
-						/*  by shift to v             */
-		if( best_match < ret ){
-						/* Store match number         */
-			best_match = ret;
-						/* Choice sequence            */
-			v_lc_from = cnt + 1;
-			w_lc_from = 1;
-		}
-	}
-						/* Check for matches          */
-						/*  by shift of w             */
-	for( cnt = 0; cnt < jnum; cnt++ ){
-						/* Call to function           */
-		ret = Matches(
+						/* Search a best matchs       */
+						/*                for inum    */
+		inum_best_matches(
 			inum,
-			jnum - cnt,
+			jnum,
 			v,
-			&w[cnt]
+			w,
+			humming_order,
+			humming_v_loc,
+			humming_w_loc,
+			&v_lc_from,
+			&w_lc_from,
+			&best_match
 		);
-						/* Choice biggest match       */
-		if( best_match < ret ){
-						/* Store match number         */
-			best_match = ret;
-						/* Choice sequence            */
-			v_lc_from = 1;
-			w_lc_from = cnt + 1;
+						/* Search a best matchs       */
+						/*                for jnum    */
+		jnum_best_matches(
+			inum,
+			jnum,
+			v,
+			w,
+			humming_order,
+			humming_v_loc,
+			humming_w_loc,
+			&v_lc_from,
+			&w_lc_from,
+			&best_match
+		);
+						/* Initialize memorys         */
+		memcpy(prescan_orders,humming_order,sizeof(long) * PRESCNRANK);
+		memcpy(prescan_v_loc, humming_v_loc,sizeof(long) * PRESCNRANK);
+		memcpy(prescan_w_loc, humming_w_loc,sizeof(long) * PRESCNRANK);
+#ifdef DEBUG
+		for( order_cnt = 0; order_cnt < PRESCNRANK; order_cnt++ ){
+
+			printf("%ld,%ld,%ld\n",
+				humming_order[order_cnt],
+				humming_v_loc[order_cnt],
+				humming_w_loc[order_cnt]
+			);
 		}
+#endif
+	}else{
+
+		best_match = prescan_orders[region_order];
+		v_lc_from  = prescan_v_loc[region_order];
+		w_lc_from  = prescan_w_loc[region_order];
 	}
 						/* Calculate to target number */
 						/*                            */
@@ -933,9 +1250,24 @@ int lcs(
 						/*   Header of space and      */
 						/*   Footer of NULL.          */
 	target_v_sequence = malloc( (target_inum) + 2 );
-	target_w_sequence = malloc( (target_jnum) + 2 );
+	if( target_v_sequence == NULL ){
 
-                                         
+		printf("Can not allocate a target_v_sequence memory.");
+		printf(" %ld [bytes]\n",
+			target_inum + 2
+		);
+		return 1;
+	}
+
+	target_w_sequence = malloc( (target_jnum) + 2 );
+	if( target_w_sequence == NULL ){
+
+		printf("Can not allocate a target_w_sequence memory.");
+		printf(" %ld [bytes]\n",
+			target_jnum + 2
+		);
+		return 1;
+	}
 						/* Zero padding               */
 	memset( target_v_sequence, '\0', (sizeof(char) * target_inum + 1) );
 	memset( target_w_sequence, '\0', (sizeof(char) * target_jnum + 1) );
@@ -1148,6 +1480,12 @@ int Procedure(
 						/* Memory allocate            */
 						/*    of Edit Graph           */
 	eg = malloc( sizeof(char *) * inum );
+	if( eg == NULL ){
+
+		printf("Can't allocate an eg memory.\n");
+		return 1;
+	}
+
 	for( i = 0; i < inum; i++ ){
 		eg[i] = malloc( sizeof(char) * jnum );
 		memset( eg[i], '\0', (sizeof(char) * jnum) );
@@ -1155,6 +1493,12 @@ int Procedure(
 						/* Memory allocate            */
 						/*    of Similary Score       */
 	ss = malloc( sizeof(long *) * inum );
+	if( ss == NULL ){
+
+		printf("Can't allocate a ss memory.\n");
+		return 1;
+	}
+
 	for( i = 0; i < inum; i++ ){
 		ss[i] = malloc( sizeof(long) * jnum );
 		memset( ss[i], '\0', (sizeof(long) * jnum) );
@@ -1162,6 +1506,12 @@ int Procedure(
 						/* Memory allocate            */
 						/*   of Back tracking pointer */
 	bp = malloc( sizeof(char *) * inum );
+	if( bp == NULL ){
+
+		printf("Can't allocate a bp memory.\n");
+		return 1;
+	}
+
 	for( i = 0; i < inum; i++ ){
 		bp[i] = malloc( sizeof(char) * jnum );
 		memset( bp[i], '\0', (sizeof(char) * jnum) );
@@ -1415,11 +1765,47 @@ int Procedure(
 	fprintf( stderr, "In global alignment mode\n");
 #endif
 		v_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
+		if( v_ans == NULL ){
+
+			printf("Can't allocate a v_ans memory.\n");
+			return 1;
+		}
+
 		w_ans  = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
+		if( w_ans == NULL ){
+
+			printf("Can't allocate a w_ans memory.\n");
+			return 1;
+		}
+
 		ans    = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
+		if( ans == NULL ){
+
+			printf("Can't allocate a ans memory.\n");
+			return 1;
+		}
+
 		eg_arr = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
+		if( eg_arr == NULL ){
+
+			printf("Can't allocate a eg_arr memory.\n");
+			return 1;
+		}
+
 		ss_arr = (long *)malloc((sizeof(long) * (inum + jnum)) + 1 );
+		if( ss_arr == NULL ){
+
+			printf("Can't allocate a ss_arr memory.\n");
+			return 1;
+		}
+
 		bp_arr = (char *)malloc((sizeof(char) * (inum + jnum)) + 1 );
+		if( bp_arr == NULL ){
+
+			printf("Can't allocate a bp_arr memory.\n");
+			return 1;
+		}
+
 						/* +1 mean footer NULL       */
 
 						/* Zero padding              */
@@ -1442,21 +1828,57 @@ int Procedure(
 		v_ans  = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
+		if( v_ans == NULL ){
+
+			printf("Can't allocate a v_ans memory.\n");
+			return 1;
+		}
+
 		w_ans  = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
+		if( w_ans == NULL ){
+
+			printf("Can't allocate a w_ans memory.\n");
+			return 1;
+		}
+
 		ans    = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
+		if( ans == NULL ){
+
+			printf("Can't allocate an ans memory.\n");
+			return 1;
+		}
+
 		eg_arr = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
+		if( eg_arr == NULL ){
+
+			printf("Can't allocate a eg_arr memory.\n");
+			return 1;
+		}
+
 		ss_arr = (long *)malloc(
 		        (sizeof(long) * (local_inum + local_jnum)) + 1
 		);
+		if( ss_arr == NULL ){
+
+			printf("Can't allocate a ss_arr memory.\n");
+			return 1;
+		}
+
 		bp_arr = (char *)malloc(
 		        (sizeof(char) * (local_inum + local_jnum)) + 1
 		);
+		if( bp_arr == NULL ){
+
+			printf("Can't allocate a bp_arr memory.\n");
+			return 1;
+		}
+
 						/* +1 mean footer NULL       */
 
 						/* Zero padding              */
@@ -1590,7 +2012,16 @@ int Procedure(
 			w_lc_from, w_lc_to,
 		        ident_cnt, ident_rate, score,
 		        compare_mode,
-			matrix_on
+			sequence_mode,
+			scan_mode,
+			matrix_on,
+			region_order,
+			prescan_orders,
+			prescan_v_loc,
+			prescan_w_loc,
+			prescan_hmm_orders,
+			prescan_hmm_s_loc,
+			prescan_hmm_e_loc
 		);
 	}
 					/* Free of memory Edit Graph         */

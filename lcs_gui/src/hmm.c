@@ -161,7 +161,9 @@ void init_tr(
 						/* Allocate memory            */
 						/*     to each TRNS.character */
 	tr->characters = malloc( sizeof(long) * processing_char_num );
-
+	if( tr->characters == NULL ){
+		return;
+	}
 						/* Reset TRNS                 */
 	reset_tr( tr );
 						/* Set address of function    */
@@ -270,7 +272,9 @@ void init_tf_cmp(
 						/* Allocate memory to each    */
 						/* TRNS_FOR_CMP.character     */
 	tf_cmp->characters = malloc( sizeof(double) * processing_char_num );
-
+	if( tf_cmp->characters == NULL ){
+		return;
+	}
 						/* Reset TRNS_FOR_CMP         */
 	reset_tf_cmp( tf_cmp );
 						/* Set address of function    */

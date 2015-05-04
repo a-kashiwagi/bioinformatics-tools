@@ -88,7 +88,7 @@
 #define LOOP			1
 
 #define BUFFER_SIZE 1024
-#define REPLACESCORE_FILENAME "/etc/blosum62"
+#define REPLACESCORE_FILENAME "/home/a-kashiwagi/etc/blosum62"
 #define REPLACE_NUM 25*25
 
 #define DEF_MATCH_NUM		 10		/* Number of match            */
@@ -100,6 +100,12 @@
 						/*    amplification           */
 #define THREADS			 50		/* Number of threads          */
 #define THREAD_NUM		 30		/* Number of cell/thread      */
+#define PRESCNRANK		 10
+
+#define SCAN_INIT	-3
+#define SCAN_START	-2
+#define SCAN_END	-1
+#define SCAN_STANDBY	 0
 
 pthread_mutex_t mutex;				/* mutex for biggest_score    */
 long biggest_score;				/* Biggest score              */
@@ -108,6 +114,14 @@ long local_inum;				/* Number of inum             */
 						/*     for a local alignment  */
 
 long local_jnum;				/* Number of jnum             */
+
+long prescan_orders[PRESCNRANK];		/* Array of pre-scan orders   */
+long prescan_v_loc[PRESCNRANK];
+long prescan_w_loc[PRESCNRANK];
+
+double prescan_hmm_orders[PRESCNRANK];		/* Array of pre-scan orders   */
+long   prescan_hmm_s_loc[PRESCNRANK];
+long   prescan_hmm_e_loc[PRESCNRANK];
 						/*     for a local alignment  */
 typedef struct thread_argments{
 	long n;
@@ -131,12 +145,13 @@ int set_lcs_param(
 	int  scan_mode,
 	int  compare_mode,
 	int  sequence_mode,
-    int  matrix_on,
+	int  matrix_on,
 	long match_num,
 	long unmatch_num,
 	long d_num,
 	long e_num,
-	long rs_num
+	long rs_num,
+	int region_order
 );
 						/* Initialize function        */
 int lcs(
@@ -286,7 +301,15 @@ int PrintOutForTextViwe(
 	double ident_rate,
 	long score,
 	int compare_mode,
-	int matrix_on
+	int scan_mode,
+	int matrix_on,
+	int region_order,
+	long *prescan_orders_p,
+	long *prescan_v_loc_p,
+	long *prescan_w_loc_p,
+	double *prescan_hmm_orders_p,
+	long *prescan_hmm_s_loc_p,
+	long *prescan_hmm_e_loc_p
 );
 						/* Load Replace Score         */
 int LoadReplaceScore();
@@ -324,7 +347,10 @@ int hmm_scn_local(
     long end,
     long *ans_start,
     long *ans_end,
-    double *ans_hmm
+    double *ans_hmm,
+    double *prescan_hmm_orders_p,
+    long *prescan_hmm_s_loc_p,
+    long *prescan_hmm_e_loc_p
 );
 						/* LCS multi threads procedure*/
 int calc_matrix(

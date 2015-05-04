@@ -34,7 +34,7 @@
 #define COLUMN_LIMIT 80 //1000
 
 #define SPLIT_NUM 20
-					/* Do worning of Load file size       */
+					/* Do warning of Load file size       */
 #define WARNINGSIZE 512000
 					/* Help file and Command              */
 #define HELPFILE "yelp /usr/share/gnome/help/lcs/C/lcs.xml &"
@@ -42,6 +42,8 @@
 #define WITHOUTREPORT	0
 					/* Mode of a without report           */
 #define WITHREPORT	1
+
+pthread_mutex_t cb_mutex;
 					/* Mode of a with report              */
 
 					/* Function declaration               */

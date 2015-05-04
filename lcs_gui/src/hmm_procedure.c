@@ -18,6 +18,10 @@
 /* Author : Akihiro Kashiwagi                                                 */
 /* Deteil : Modify to module for LCS                                          */
 /*                                                                            */
+/* Date   : 2015/04/18                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Add procedure that a prescan order.                               */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -133,7 +137,9 @@ TRNS *init_tr_set( void ){
 
 						/* Allocate TRNS array        */
 	tr = malloc( sizeof(TRNS) * processing_char_num );
-
+	if( tr == NULL ){
+		return NULL;
+	}
 						/* Initialize each TRNS array */
 	for( cnt = 0; cnt < processing_char_num; cnt++ ){
 		init_tr(
@@ -325,6 +331,9 @@ int hmm_scn_global(
 						/* Allocate memory            */
 						/*         to TRNS            */
 	source_tr = malloc( sizeof(TRNS) * processing_char_num );
+	if( source_tr == NULL ){
+		return 1;
+	}
 
 						/* Initialize TRNS            */
 	for( cnt = 0; cnt < processing_char_num; cnt++ ){
@@ -340,7 +349,9 @@ int hmm_scn_global(
 						/* Allocate memory            */
 						/*         to TRNS_FOR_CMP    */
 	target_tf_cmp = malloc( sizeof(TRNS_FOR_CMP) * processing_char_num );
-
+	if( target_tf_cmp == NULL ){
+		return 1;
+	}
 						/* Initialize TRNS_FOR_CMP    */
 	for( cnt = 0; cnt < processing_char_num; cnt++ ){
 						/* Allocate memory to each    */
@@ -371,7 +382,9 @@ int hmm_scn_global(
 						/* Memory allocate            */
 						/*         for sequence array */
 	sequence = malloc( sizeof(char) * (length + 1) );
-
+	if( sequence == NULL ){
+		return 1;
+	}
 						/* Set null terminater        */
 	sequence[length] = '\0';
 						/* Pre loop that get part of  */
@@ -524,6 +537,10 @@ int hmm_scn_global(
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
 /*                                                                            */
+/* Date   : 2015/04/18                                                        */
+/* Author : Akihiro Kashiwagi                                                 */
+/* Deteil : Add procedure that a prescan order                                */
+/*                                                                            */
 /* Date   :                                                                   */
 /* Author :                                                                   */
 /* Deteil :                                                                   */
@@ -540,7 +557,10 @@ int hmm_scn_local(
     long end,
     long *ans_start,
     long *ans_end,
-    double *ans_hmm
+    double *ans_hmm,
+    double *prescan_orders_p,
+    long *prescan_hmm_s_loc_p,
+    long *prescan_hmm_e_loc_p
 ){
 						/* Input character from stdin */
 	int in_char;
@@ -567,14 +587,20 @@ int hmm_scn_local(
 						/* Location of current        */
 	long limit_loc;
 						/* location of limit          */
+	double hmm_order[PRESCNRANK];
+	long   hmm_s_loc[PRESCNRANK];
+	long   hmm_e_loc[PRESCNRANK];
 
+	long order_cnt;
+	long shift_cnt;
 						/* Structure for compare      */
 	TRNS_FOR_CMP *tf_cmp;
-
 						/* Allocate memory            */
 						/*         to TRNS_FOR_CMP    */
 	tf_cmp = malloc( sizeof(TRNS_FOR_CMP) * processing_char_num );
-
+	if( tf_cmp == NULL ){
+		return 1;
+	}
 						/* Initialize TRNS_FOR_CMP    */
 	for( cnt = 0; cnt < processing_char_num; cnt++ ){
 						/* Allocate memory to each    */
@@ -604,7 +630,9 @@ int hmm_scn_local(
 						/* Memory allocate            */
 						/*         for sequence array */
 	sequence = malloc( sizeof(char) * (length_add + 1) );
-
+	if( sequence == NULL ){
+		return 1;
+	}
 						/* Set null terminater        */
 	sequence[length_add] = '\0';
 						/* Pre loop that get part of  */
@@ -636,6 +664,22 @@ int hmm_scn_local(
 	}
 						/* Init minimum_hmm_number    */
 	minimum_hmm_number = range;
+	memset(hmm_order, 0, sizeof(double) * PRESCNRANK);
+	memset(hmm_s_loc,  0, sizeof(long)   * PRESCNRANK);
+	memset(hmm_e_loc,  0, sizeof(long)   * PRESCNRANK);
+	hmm_order[0] = range;
+	current_loc = 0;
+
+	/*
+	for( order_cnt = 0; order_cnt < PRESCNRANK; order_cnt++ ){
+
+		printf("hmm_order[%d]:%f sloc[%d]:%ld eloc[%d]:%ld\n",
+			order_cnt,hmm_order[order_cnt],
+			order_cnt,hmm_s_loc[order_cnt],
+			order_cnt,hmm_e_loc[order_cnt]
+		);
+	}
+	*/
 						/* Init minimum_current_cnt   */
 	minimum_current_cnt = -1;
 						/* Calculate location of limit*/
@@ -661,20 +705,63 @@ int hmm_scn_local(
 		hmm_number = fabs( hmm_number );
 
 						/* Store minimum numbers      */
-		if( hmm_number <= minimum_hmm_number ){
+		for( order_cnt = 0; order_cnt < PRESCNRANK - 1; order_cnt++ ){
 
-			minimum_hmm_number = hmm_number;
+			// if( hmm_number <= minimum_hmm_number )
+			if( hmm_number < hmm_order[order_cnt] ){
+
+				for( shift_cnt = PRESCNRANK - 2;
+				     shift_cnt >= order_cnt;
+				     shift_cnt-- ){
+
+					hmm_order[shift_cnt + 1]
+						= hmm_order[shift_cnt];
+
+					hmm_s_loc[shift_cnt + 1]
+						= hmm_s_loc[shift_cnt];
+
+					hmm_e_loc[shift_cnt + 1]
+						= hmm_e_loc[shift_cnt];
+				}
+
+				//minimum_hmm_number = hmm_number;
 						/* Number of hmm              */
-
-			minimum_current_cnt = cnt;
-						/* Number of current count    */
+				break;
+			}
 		}
+
+		//printf("%ld %f %ld\n",order_cnt,hmm_number,current_loc);
+
+						/* Number of current count    */
+		minimum_current_cnt = cnt;
+		hmm_order[order_cnt] = hmm_number;
+		hmm_s_loc[order_cnt] = start + current_loc;
+		hmm_e_loc[order_cnt] = end;
+		// hmm_loc[order_cnt] = current_loc;
 						/* Increment counter          */
 		cnt++;
 						/* Calculate current location */
 		current_loc = floorl((double)length_add - (double)cnt);
 
 	} while( current_loc > limit_loc );
+
+	memcpy( prescan_orders_p,   hmm_order, sizeof(double) * PRESCNRANK );
+	memcpy( prescan_hmm_s_loc_p, hmm_s_loc,  sizeof(long)   * PRESCNRANK );
+	memcpy( prescan_hmm_e_loc_p, hmm_e_loc,  sizeof(long)   * PRESCNRANK );
+
+	/*
+	for( order_cnt = 0; order_cnt < PRESCNRANK; order_cnt++ ){
+
+		printf("hmm_order[%d]:%f sloc[%d]:%ld eloc[%d]:%ld\n",
+			order_cnt,hmm_order[order_cnt],
+			order_cnt,hmm_s_loc[order_cnt],
+			order_cnt,hmm_e_loc[order_cnt]
+		);
+	}
+	*/
+
+	minimum_hmm_number = hmm_order[0];
+	//minimum_current_loc = hmm_s_loc[0];
 						/* Print out                  */
 	if( minimum_current_cnt != -1 ){
 						/* Start, End, HMM number     */
@@ -686,11 +773,14 @@ int hmm_scn_local(
 		);
 	     	*/
 	    					/* Start position             */
-	    	*ans_start = start + minimum_current_cnt;
+	    	// *ans_start = start + minimum_current_cnt;
+	    	*ans_start = hmm_s_loc[0];
 	    					/* End position               */
-	    	*ans_end = end;
+	    	// *ans_end = end;
+		*ans_end = hmm_e_loc[0];
 	    					/* HMM number                 */
-	    	*ans_hmm = minimum_hmm_number;
+	    	// *ans_hmm = minimum_hmm_number;
+	    	*ans_hmm = hmm_order[0];
 	}else{
 	    					/* Can not find               */
 	    	*ans_start = -1;
@@ -704,5 +794,5 @@ int hmm_scn_local(
 
 	free( tf_cmp );
 						/* Normal terminate           */
-    	return(0);
+	return(0);
 }
