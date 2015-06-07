@@ -34,7 +34,7 @@
 						/*                    in line */
 #define PAGE_ROW_LIMIT 100			/* Limit of row line number   */
 						/*                    in page */
-#define CURSOR_BUFFER 100			/* Cursor buffer size         */
+#define CURSOR_BUFFER 1000			/* Cursor buffer size         */
 						/*          of fetch of sql   */
 #define BR_TERM 2				/* Term of br for line header */
 
@@ -42,6 +42,11 @@
 						/* Header file                */
 #define FOOTER_FILE "/home/a-kashiwagi/dat/formatDNA.foot"
 						/* Footer file                */
+#define IDX_HEAD_FILE "/home/a-kashiwagi/dat/formatDNA.idx_head"
+						/* idx header file            */
+#define IDX_FOOT_FILE "/home/a-kashiwagi/dat/formatDNA.idx_foot"
+						/* idx_foot file              */
+
 #define OUTPUT_FILE ""				/* Out put file               */
 #define INDEX_FILE "index.html"			/* Index file                 */
 
@@ -191,7 +196,8 @@ int putIndex(
 	char *filename,
 	long page_no,
 	int page_row_limit,
-	int column_limit
+	int column_limit,
+	long number_of_motif[]
 ){
 	FILE *fp;				/* File pointer               */
 	char buffer[BUFFER_SIZE];		/* Buffer of file name        */
@@ -199,6 +205,7 @@ int putIndex(
 	long cnt;				/* General purpose counter    */
 	int digit_num;				/* Number of digit            */
 	int br_cnt;				/* Counter of out put <br>    */
+	int ret;				/* Return value               */
 
 						/* Make file name             */
 	sprintf( buffer, "%s%ld.html", filename, page_no );
@@ -215,12 +222,15 @@ int putIndex(
 	) + 1;
 						/* Make format for printf     */
 	sprintf(format_buf,
-		"<a href=%%s%%ld.html>%%0%dld-%%0%dld</a>  \n",
+		"<a href=%%s%%ld.html title='%s'>%%0%dld-%%0%dld(%%03ld)</a>  \n",
+		"CTRL+Click and open a new window.",
 		digit_num, digit_num
 	);
+						/* Put header file            */
+	ret = putFile( IDX_HEAD_FILE, fp );
 						/* Out put Index              */
-	fprintf( fp, "<HTML>\n");
-	fprintf( fp, "<BODY>\n");
+	// fprintf( fp, "<HTML>\n");
+	// fprintf( fp, "<BODY>\n");
 						/* Set term of <br> counter   */
 	br_cnt = BR_TERM;
 	for(cnt = 0; cnt < page_no; cnt++ ){
@@ -230,7 +240,8 @@ int putIndex(
 			filename,
 			cnt,
 			(( column_limit * page_row_limit ) * cnt) + 1,
-			( column_limit * page_row_limit ) * (cnt + 1)
+			( column_limit * page_row_limit ) * (cnt + 1),
+			number_of_motif[cnt]
 		);
 
 		if( br_cnt == 0 ){
@@ -243,8 +254,10 @@ int putIndex(
 		}
 	}
 
-	fprintf( fp, "</BODY>\n");
-	fprintf( fp, "</HTML>\n");
+	// fprintf( fp, "</BODY>\n");
+	// fprintf( fp, "</HTML>\n");
+						/* Put footer file            */
+	ret = putFile( IDX_FOOT_FILE, fp );
 						/* File close                 */
 	fclose(fp);
 						/* Return                     */
@@ -356,32 +369,54 @@ int main( int argc, char *argv[] ){
 						/*  motif cursor number       */
 
 	long split_num;				/* Number of split            */
-
 	long header_line_num;			/* Number of line             */
 						/*            of header file  */
 	long footer_line_num;			/* Number of line             */
 						/*            of footer file  */
-
 	int in_orf_flg;				/* Flag of orf now            */
+
 	int in_motif_flg;			/* Flag of motif now          */
 
 	long s_orf_buf[CURSOR_BUFFER];		/* Buffer of s column         */
 						/*           from PredictGene */
 	long e_orf_buf[CURSOR_BUFFER];		/* Buffer of e column         */
 						/*           from PredictGene */
+	char gene_orf_buf[CURSOR_BUFFER][256];	/* Buffer of gene column      */
+						/*           from PredictGene */
+	char product_orf_buf[CURSOR_BUFFER][1024];
+						/* Length of ORF              */
+	long orf_len;
+						/* Counter of ORF             */
+	long orf_cnt;
+						/* Number of span for close   */
+	long orf_close_cnt;
+						/* Length of overlap work len */
+	long overlap_work_len;
+						/* Counter of offset          */
+	long offset_cnt;
+						/* Buffer of overlap number   */
+	char *overlap_buf;
+						/* Length of overlap          */ 
+	long overlap_len;
+						/* Current number of overlap  */
+	long overlap_cnt;
+						/* Last number of overlap     */
+	char overlap_last;
+						/* Buffer of work             */
+	char *overlap_work;
 
 	long s_motif_buf[CURSOR_BUFFER];	/* Buffer of s column from DB */
 						/*           from fmotif      */
 	long e_motif_buf[CURSOR_BUFFER];	/* Buffer of e column from DB */
 						/*           from fmotif      */
-
+	long number_of_motif[1024];		/* Number of motif in file    */ 
 	char filename[BUFFER_SIZE];		/* Buffer of file name        */
 
 
 						/* Connect to DB              */
 	EXEC SQL WHENEVER SQLERROR STOP;
-	EXEC SQL CONNECT TO "DATA-BASE NAME" AS bibase
-			USER "USER-NAME" USING "PASSWORD";
+	EXEC SQL CONNECT TO "for_a-kashiwagi@pgsql02" AS bibase
+			USER "a-kashiwagi" USING "a-kashiwagi0620";
 
 						/* Declare arrays             */
 	EXEC SQL BEGIN DECLARE SECTION;
@@ -390,6 +425,9 @@ int main( int argc, char *argv[] ){
 						/*           from PredictGene */
 		long e_orf;			/* For e column               */
 						/*           from PredictGene */
+		char gene_orf[256];
+
+		char product_orf[1024];
 
 		long s_motif;			/* For s column               */
 						/*           from fmotif      */
@@ -497,7 +535,9 @@ int main( int argc, char *argv[] ){
 	EXEC SQL DECLARE orf_cur CURSOR FOR
 /* for Discovered Gene */
 		SELECT	s,
-			e
+			e,
+			gene,
+			product
 		  FROM	Discovered_Gene
 		 WHERE	nc = :asgn_nc
 		ORDER BY s ASC;
@@ -524,25 +564,13 @@ int main( int argc, char *argv[] ){
 
 	EXEC SQL DECLARE motif_cur CURSOR FOR
 
-		SELECT	s,
-			e
-		  FROM	fmotif
-		 WHERE	lmer in (9,10)
+		SELECT	s,e
+		  FROM	fmotif_new
+		 WHERE	lmer = :asgn_lmer
 		   AND  nc = :asgn_nc
 		   AND	count >= :asgn_count
-		   AND	sequence in (
-			'TTCAAAACGA',
-			'TTCAAAACG',
-			'TTCAAAACGAT',
-			'TCAAAACGATG',
-			'TCAAAACGAT',
-			'TCAAAACGA',
-			'CAAAACGATGC',
-			'CAAAACGATG',
-			'CAAAACGAT',
-			'AAAACGATGCA',
-			'AAAACGATGC',
-			'AAAACGATG'
+		   AND	(parent in (240211,403304)
+			   or s in (240211,403304)
 			)
 		ORDER BY s ASC;
 
@@ -583,12 +611,18 @@ int main( int argc, char *argv[] ){
 	sequence_cnt  =  0;			/* Counter of sequence        */
 	page_row_cnt  =  0;			/* Counter of row number      */
 						/*                 in page    */
+	number_of_motif[page_no] = 0;		/* Number of motif            */
 
 						/* Get data from DNA file     */
 	in_char = fgetc( in_fp );
 
 	column_cnt++;
 	sequence_cnt++;
+	overlap_buf = NULL;
+	overlap_len = -1;
+	overlap_last = 0;
+
+	int loop_cnt = 0;
 
 	while( in_char != EOF ){
 						/* Get orf data from DB       */
@@ -605,12 +639,86 @@ int main( int argc, char *argv[] ){
 				EXEC SQL WHENEVER NOT FOUND DO BREAK;
 						/* Fetch                      */
 				EXEC SQL FETCH  orf_cur INTO
-					:s_orf, :e_orf;
+					:s_orf,
+					:e_orf,
+					:gene_orf,
+					:product_orf;
 
 						/* Set s column to s_buf      */
 				s_orf_buf[orf_cur_cnt] = s_orf;
 						/* Set e column to e_buf      */
 				e_orf_buf[orf_cur_cnt] = e_orf; 
+						/* Set gene column to gene_buf*/
+				strcpy(&gene_orf_buf[orf_cur_cnt][0], gene_orf);
+						/* Set product column to buf  */
+				strcpy( &product_orf_buf[orf_cur_cnt][0],
+					product_orf
+				);
+
+				overlap_cnt = 0;
+
+				if( overlap_len == -1 ){
+
+					overlap_buf = malloc(s_orf);
+					if( overlap_buf == NULL ){
+						printf("Can't allocate memory for overlap_buf.\n");
+						exit(-1);
+					}
+					overlap_len = s_orf;
+					bzero(overlap_buf, s_orf);
+				}
+
+				orf_len = e_orf - s_orf;
+				overlap_work_len = e_orf - (sequence_cnt - 1);
+
+				if( overlap_work_len <= overlap_len ){
+					overlap_work_len = overlap_len;
+				}
+
+				overlap_work = malloc( overlap_work_len );
+				if( overlap_work == NULL ){
+					printf("Can't allocate memory for overlap_work.\n");
+
+					exit(-1);
+				}
+				bzero( overlap_work, overlap_work_len );
+
+				memcpy( overlap_work, overlap_buf, overlap_len );
+				if( overlap_buf != NULL ){
+					free( overlap_buf );
+					overlap_buf = NULL;
+					overlap_len = 0;
+				}
+
+				offset_cnt = s_orf - sequence_cnt;
+
+				for( orf_cnt = 0; orf_cnt <= orf_len; orf_cnt++ ){
+				
+					overlap_work[offset_cnt + orf_cnt]++;
+				}
+
+				overlap_buf = malloc( overlap_work_len );
+				if( overlap_buf == NULL ){
+					printf("Can't allocate memory for overlap_buf.\n");
+					exit(-1);
+				}
+				overlap_len = overlap_work_len;
+				if( overlap_buf == NULL ){
+					printf("Can not allocate memory for overlap_len.\n");
+				}else{
+					//printf("malloc(%d)\n",overlap_work_len);
+				}
+
+				memcpy(overlap_buf,
+					overlap_work,
+					overlap_work_len
+				);
+
+				if( overlap_work != NULL ){
+					free( overlap_work );
+					overlap_work = NULL;
+					overlap_work_len = 0;
+				}
 
 				if( orf_cur_cnt == ( CURSOR_BUFFER - 1 ) ){
 						/* Reaching buffer maximum    */
@@ -622,18 +730,6 @@ int main( int argc, char *argv[] ){
 						/* Fast forward orf_cur_cnt   */
 					continue;
 
-                                }else if(
-					orf_cur_cnt > 0 &&
-					s_orf <= e_orf_buf[orf_cur_cnt - 1]
-				){
-						/* For overlap sequences      */
-					e_orf_buf[orf_cur_cnt - 1] = e_orf;
-
-					printf("s_orf[%d] e_orf[%d] ",
-						s_orf, e_orf);
-					printf("s_orf--[%d] e_orf--[%d]\n",
-						s_orf_buf[orf_cur_cnt-1],
-						e_orf_buf[orf_cur_cnt-1]);
 				}else{
 						/* Still buffer maximum       */
 					orf_cur_cnt++;
@@ -684,12 +780,20 @@ int main( int argc, char *argv[] ){
 		}
 
 						/* Case of start to ORF       */
-		if( s_orf_buf[orf_cur_cnt] == sequence_cnt ){
+		if( overlap_buf[overlap_cnt] > overlap_last ){
+
 						/* Output html tag            */
-			fprintf( out_fp, "<span class=orf>" );
+			fprintf(out_fp,
+				"<span class=orf%d title='Gene:%s:%s'>",
+				overlap_buf[overlap_cnt],
+				&gene_orf_buf[orf_cur_cnt][0],
+				&product_orf_buf[orf_cur_cnt][0]
+			);
 						/* Flag ON                    */
 			in_orf_flg = ON;
 		}
+						/* Store overlap number       */
+		overlap_last = overlap_buf[overlap_cnt];
 
 						/* Case of start to MOTIF     */
 		if( s_motif_buf[motif_cur_cnt] == sequence_cnt ){
@@ -701,13 +805,26 @@ int main( int argc, char *argv[] ){
 					> e_orf_buf[orf_cur_cnt]) ){
 
 						/* then end to orf element    */
-				fprintf( out_fp, "</span>" );
+
+                                for( orf_close_cnt = overlap_buf[overlap_cnt];
+                                        orf_close_cnt > 0;
+                                        orf_close_cnt--
+                                ){      
+					fprintf( out_fp, "</span>" );
+				}
+
 				in_orf_flg = OFF;
 			}
 						/* Output html tag            */
-			fprintf( out_fp, "<span class=motif>" );
+			fprintf(out_fp,
+				"<span class=motif title='%ld-%ld'>",
+				s_motif_buf[motif_cur_cnt],
+				e_motif_buf[motif_cur_cnt]
+			);
 						/* Flag ON                    */
 			in_motif_flg = ON;
+						/* Motif count in page        */
+			number_of_motif[page_no]++;
 		}
 
 		switch( in_char ){
@@ -716,7 +833,7 @@ int main( int argc, char *argv[] ){
 			case 'a':
 						/* Output html tag            */
 				fprintf(out_fp,
-					"<span class=adenine>A</span>"
+				"<span class=adenine>A</span>"
 				);
 				break;
 
@@ -750,30 +867,50 @@ int main( int argc, char *argv[] ){
 			default:
 				break;
 		}
-
 						/* Case of end to orf         */
-		if( e_orf_buf[orf_cur_cnt] == sequence_cnt ){
+		if( overlap_buf[overlap_cnt+1] < overlap_buf[overlap_cnt] ){
 						/* Output html tag            */
 			if( in_orf_flg == ON ){
-				fprintf( out_fp, "</span>");
+
+				for( orf_close_cnt = overlap_buf[overlap_cnt];
+					orf_close_cnt > 0;
+					orf_close_cnt--
+				){
+					fprintf( out_fp, "</span>");
+				}
+			}
+						/* ORF flag OFF               */
+			if( overlap_buf[overlap_cnt+1] <= 0){
+
+				in_orf_flg = OFF;
+			}else{
+						/* Output html tag            */
+				fprintf(out_fp,
+					"<span class=orf%d title='Gene:%s:%s'>",
+					overlap_buf[overlap_cnt+1],
+					&gene_orf_buf[orf_cur_cnt+1][0],
+					&product_orf_buf[orf_cur_cnt+1][0]
+				);
 			}
 						/* Increment curosor_cnt      */
-			orf_cur_cnt++;
-						/* ORF flag OFF               */
-			in_orf_flg = OFF;
-
+			if( orf_cur_cnt < CURSOR_BUFFER - 1 ){
+				orf_cur_cnt++;
+			}
 						/* Fast forward orf_cur_cnt   */
 			while( orf_cur_cnt < CURSOR_BUFFER ){
 
-				if( s_orf_buf[orf_cur_cnt] > sequence_cnt ){
+			 	if( s_orf_buf[orf_cur_cnt] > sequence_cnt ){
 						/* Reached sequence cnt       */
-					break;
-				}
+			 		break;
+			 	}
 						/* Increment curosor_cnt      */
+			 	orf_cur_cnt++;
+			}
+						/* Increment curosor_cnt      */
+			if( orf_cur_cnt < CURSOR_BUFFER - 1 ){
 				orf_cur_cnt++;
 			}
 		}
-
 						/* Case of end to motif       */
 		if( e_motif_buf[motif_cur_cnt] == sequence_cnt ){
 						/* Output html tag            */
@@ -793,6 +930,21 @@ int main( int argc, char *argv[] ){
 						/* Increment curosor_cnt      */
 				motif_cur_cnt++;
 			}
+
+			/*
+			if( overlap_buf[overlap_cnt+1] > 0 ){
+
+				overlap_last = 0;
+				in_orf_flg = ON;
+
+				fprintf(out_fp,
+					"<span class=orf%d title='Gene:%s:%s'>",
+					overlap_buf[overlap_cnt+1],
+					&gene_orf_buf[orf_cur_cnt][0],
+					&product_orf_buf[orf_cur_cnt][0]
+				);
+			}
+			*/
 		}
 
 						/* Case of end of line        */
@@ -801,7 +953,12 @@ int main( int argc, char *argv[] ){
 						/* Case of ORF now            */
 			if( in_orf_flg == ON ){
 						/* Output html tag            */
-				fprintf( out_fp, "</span>");
+                                for( orf_close_cnt = overlap_buf[overlap_cnt];
+					orf_close_cnt > 0;
+					orf_close_cnt--
+                                ){      
+					fprintf( out_fp, "</span>");
+				}
 			}
 
 						/* Case of MOTIF now          */
@@ -838,7 +995,12 @@ int main( int argc, char *argv[] ){
 					FOOTER_FILE,
 					out_fp
 				);
-
+				/* debug write
+				printf("%ld:number_of_motif(%ld)\n",
+					page_no,
+					number_of_motif[page_no]
+				);
+				*/
 						/* Set split number           */
 				split_num = header_line_num
 					  + page_row_cnt
@@ -859,6 +1021,9 @@ int main( int argc, char *argv[] ){
 
 						/* Make filename              */
 				page_no++;
+						/* Number of motif            */
+				number_of_motif[page_no] = 0;
+
 				sprintf(filename,
 					"%s%ld.html",
 					OUTPUT_FILE,
@@ -900,13 +1065,24 @@ int main( int argc, char *argv[] ){
 						/* Case of ORF now            */
 			if( in_orf_flg == ON ){
 						/* Output html tag            */
-				fprintf( out_fp, "<span class=orf>");
+				fprintf(out_fp,
+					"<span class=orf%d title='Gene:%s:%s'>",
+					overlap_buf[overlap_cnt],
+					&gene_orf_buf[orf_cur_cnt][0],
+					&product_orf_buf[orf_cur_cnt][0]
+				);
 			}
 
 						/* Case of MOTIF now          */
 			if( in_motif_flg == ON ){
 						/* Output html tag            */
-				fprintf( out_fp, "<span class=motif>");
+				fprintf(out_fp,
+					"<span class=motif title='%ld-%ld'>",
+					s_motif_buf[motif_cur_cnt],
+					e_motif_buf[motif_cur_cnt]
+				);
+						/* Motif counter in page      */
+				//number_of_motif[page_no]++;
 			}
 		}
 						/* Get next sequence          */
@@ -914,6 +1090,7 @@ int main( int argc, char *argv[] ){
 						/* increment counter          */
 		column_cnt++;
 		sequence_cnt++;
+		overlap_cnt++;
 	}
 
 						/* Cursor close               */
@@ -924,6 +1101,12 @@ int main( int argc, char *argv[] ){
 						/* Output last footer         */
 	footer_line_num = putFile( FOOTER_FILE, out_fp );
 
+	/* debug write
+	printf("%ld:number_of_motif(%ld)\n",
+		page_no,
+		number_of_motif[page_no]
+	);
+	*/
 						/* Close out put file         */
 	fclose(out_fp);
 						/* Case of not stdin          */
@@ -932,7 +1115,14 @@ int main( int argc, char *argv[] ){
 	}
 
 	page_no++;
-	ret = putIndex( OUTPUT_FILE, page_no, PAGE_ROW_LIMIT, COLUMN_LIMIT );
+	ret = putIndex(
+		OUTPUT_FILE,
+		page_no,
+		PAGE_ROW_LIMIT,
+		COLUMN_LIMIT,
+		number_of_motif
+	);
+
 	if( ret != 0 ){
 		fprintf( stderr, "Fail, Make a index file.\n" );
 		exit(-1);
