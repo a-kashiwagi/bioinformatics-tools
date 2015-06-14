@@ -390,20 +390,22 @@ int main( int argc, char *argv[] ){
 	long orf_cnt;
 						/* Number of span for close   */
 	long orf_close_cnt;
-						/* Length of overlap work len */
-	long overlap_work_len;
+						/* Number of current orf      */
+	long current_orf;
 						/* Counter of offset          */
 	long offset_cnt;
 						/* Buffer of overlap number   */
 	char *overlap_buf;
-						/* Length of overlap          */ 
-	long overlap_len;
-						/* Current number of overlap  */
-	long overlap_cnt;
-						/* Last number of overlap     */
-	char overlap_last;
 						/* Buffer of work             */
 	char *overlap_work;
+						/* Length of overlap          */ 
+	long  overlap_len;
+						/* Length of overlap work len */
+	long  overlap_work_len;
+						/* Current number of overlap  */
+	long  overlap_cnt;
+						/* Last number of overlap     */
+	char  overlap_last;
 
 	long s_motif_buf[CURSOR_BUFFER];	/* Buffer of s column from DB */
 						/*           from fmotif      */
@@ -622,7 +624,7 @@ int main( int argc, char *argv[] ){
 	overlap_len = -1;
 	overlap_last = 0;
 
-	int loop_cnt = 0;
+	current_orf  = -1;
 
 	while( in_char != EOF ){
 						/* Get orf data from DB       */
@@ -661,7 +663,8 @@ int main( int argc, char *argv[] ){
 
 					overlap_buf = malloc(s_orf);
 					if( overlap_buf == NULL ){
-						printf("Can't allocate memory for overlap_buf.\n");
+						printf("Can't allocate memory");
+						printf(" for overlap_buf.\n");
 						exit(-1);
 					}
 					overlap_len = s_orf;
@@ -677,13 +680,14 @@ int main( int argc, char *argv[] ){
 
 				overlap_work = malloc( overlap_work_len );
 				if( overlap_work == NULL ){
-					printf("Can't allocate memory for overlap_work.\n");
+					printf("Can't allocate memory");
+					printf(" for overlap_work.\n");
 
 					exit(-1);
 				}
 				bzero( overlap_work, overlap_work_len );
 
-				memcpy( overlap_work, overlap_buf, overlap_len );
+				memcpy( overlap_work, overlap_buf,overlap_len );
 				if( overlap_buf != NULL ){
 					free( overlap_buf );
 					overlap_buf = NULL;
@@ -692,22 +696,23 @@ int main( int argc, char *argv[] ){
 
 				offset_cnt = s_orf - sequence_cnt;
 
-				for( orf_cnt = 0; orf_cnt <= orf_len; orf_cnt++ ){
+				for(	orf_cnt = 0;
+					orf_cnt <= orf_len;
+					orf_cnt++
+				){
 				
 					overlap_work[offset_cnt + orf_cnt]++;
 				}
 
 				overlap_buf = malloc( overlap_work_len );
 				if( overlap_buf == NULL ){
-					printf("Can't allocate memory for overlap_buf.\n");
+					printf("Can't allocate memory");
+					printf(" for overlap_buf.\n");
 					exit(-1);
 				}
 				overlap_len = overlap_work_len;
-				if( overlap_buf == NULL ){
-					printf("Can not allocate memory for overlap_len.\n");
-				}else{
-					//printf("malloc(%d)\n",overlap_work_len);
-				}
+
+				bzero( overlap_buf, overlap_len );
 
 				memcpy(overlap_buf,
 					overlap_work,
@@ -780,14 +785,17 @@ int main( int argc, char *argv[] ){
 		}
 
 						/* Case of start to ORF       */
-		if( overlap_buf[overlap_cnt] > overlap_last ){
+		if( ( overlap_buf[overlap_cnt] > overlap_last )
+			&& ( overlap_cnt <= overlap_len )
+		){
 
+			current_orf++;
 						/* Output html tag            */
 			fprintf(out_fp,
 				"<span class=orf%d title='Gene:%s:%s'>",
 				overlap_buf[overlap_cnt],
-				&gene_orf_buf[orf_cur_cnt][0],
-				&product_orf_buf[orf_cur_cnt][0]
+				&gene_orf_buf[current_orf][0],
+				&product_orf_buf[current_orf][0]
 			);
 						/* Flag ON                    */
 			in_orf_flg = ON;
@@ -802,10 +810,9 @@ int main( int argc, char *argv[] ){
 						/*  end of orf ending element */
 			if( in_orf_flg == ON &&
 				(e_motif_buf[motif_cur_cnt]
-					> e_orf_buf[orf_cur_cnt]) ){
+					> e_orf_buf[current_orf]) ){
 
 						/* then end to orf element    */
-
                                 for( orf_close_cnt = overlap_buf[overlap_cnt];
                                         orf_close_cnt > 0;
                                         orf_close_cnt--
@@ -868,7 +875,13 @@ int main( int argc, char *argv[] ){
 				break;
 		}
 						/* Case of end to orf         */
-		if( overlap_buf[overlap_cnt+1] < overlap_buf[overlap_cnt] ){
+		if( ((overlap_buf[overlap_cnt+1] < overlap_buf[overlap_cnt])
+			|| ( e_orf_buf[current_orf] == sequence_cnt ))
+			&& ( overlap_cnt <= overlap_len )
+		){
+			if( (s_orf_buf[current_orf+1]) == (sequence_cnt+1) ){
+				current_orf++;
+			}
 						/* Output html tag            */
 			if( in_orf_flg == ON ){
 
@@ -888,8 +901,8 @@ int main( int argc, char *argv[] ){
 				fprintf(out_fp,
 					"<span class=orf%d title='Gene:%s:%s'>",
 					overlap_buf[overlap_cnt+1],
-					&gene_orf_buf[orf_cur_cnt+1][0],
-					&product_orf_buf[orf_cur_cnt+1][0]
+					&gene_orf_buf[current_orf][0],
+					&product_orf_buf[current_orf][0]
 				);
 			}
 						/* Increment curosor_cnt      */
@@ -930,21 +943,6 @@ int main( int argc, char *argv[] ){
 						/* Increment curosor_cnt      */
 				motif_cur_cnt++;
 			}
-
-			/*
-			if( overlap_buf[overlap_cnt+1] > 0 ){
-
-				overlap_last = 0;
-				in_orf_flg = ON;
-
-				fprintf(out_fp,
-					"<span class=orf%d title='Gene:%s:%s'>",
-					overlap_buf[overlap_cnt+1],
-					&gene_orf_buf[orf_cur_cnt][0],
-					&product_orf_buf[orf_cur_cnt][0]
-				);
-			}
-			*/
 		}
 
 						/* Case of end of line        */
@@ -1068,8 +1066,8 @@ int main( int argc, char *argv[] ){
 				fprintf(out_fp,
 					"<span class=orf%d title='Gene:%s:%s'>",
 					overlap_buf[overlap_cnt],
-					&gene_orf_buf[orf_cur_cnt][0],
-					&product_orf_buf[orf_cur_cnt][0]
+					&gene_orf_buf[current_orf][0],
+					&product_orf_buf[current_orf][0]
 				);
 			}
 
