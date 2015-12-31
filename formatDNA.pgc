@@ -28,13 +28,13 @@
 #define PGFALSE 'f'
 #define BUFFER_SIZE 1024
 
-#define COLUMN_LIMIT 50				/* Limit of column number     */
+#define COLUMN_LIMIT 100			/* Limit of column number     */
 						/*                    in line */
 #define TERM_OF_HEADER 20			/* Out put term of header     */
 						/*                    in line */
 #define PAGE_ROW_LIMIT 100			/* Limit of row line number   */
 						/*                    in page */
-#define CURSOR_BUFFER 1000			/* Cursor buffer size         */
+#define CURSOR_BUFFER 3000			/* Cursor buffer size         */
 						/*          of fetch of sql   */
 #define BR_TERM 2				/* Term of br for line header */
 
@@ -381,9 +381,9 @@ int main( int argc, char *argv[] ){
 						/*           from PredictGene */
 	long e_orf_buf[CURSOR_BUFFER];		/* Buffer of e column         */
 						/*           from PredictGene */
-	char gene_orf_buf[CURSOR_BUFFER][256];	/* Buffer of gene column      */
+	char gene_orf_buf[CURSOR_BUFFER][16];	/* Buffer of gene column      */
 						/*           from PredictGene */
-	char product_orf_buf[CURSOR_BUFFER][1024];
+	char product_orf_buf[CURSOR_BUFFER][256];
 						/* Length of ORF              */
 	long orf_len;
 						/* Counter of ORF             */
@@ -417,7 +417,7 @@ int main( int argc, char *argv[] ){
 
 						/* Connect to DB              */
 	EXEC SQL WHENEVER SQLERROR STOP;
-	EXEC SQL CONNECT TO "for_a-kashiwagi@pgsql02" AS bibase
+	EXEC SQL CONNECT TO "for_a-kashiwagi2@pgsql02" AS bibase
 			USER "a-kashiwagi" USING "a-kashiwagi0620";
 
 						/* Declare arrays             */
@@ -561,19 +561,14 @@ int main( int argc, char *argv[] ){
 		ORDER BY s ASC;
 */
 
-		 // WHERE	lmer = :asgn_lmer
-		 //   AND	char_length(sequence) = :asgn_len
-
 	EXEC SQL DECLARE motif_cur CURSOR FOR
 
 		SELECT	s,e
 		  FROM	fmotif_new
-		 WHERE	lmer = :asgn_lmer
-		   AND  nc = :asgn_nc
+		 WHERE	nc = :asgn_nc
+		   AND	lmer = :asgn_lmer
 		   AND	count >= :asgn_count
-		   AND	(parent in (240211,403304)
-			   or s in (240211,403304)
-			)
+		   AND	char_length(sequence) >= :asgn_len
 		ORDER BY s ASC;
 
 	EXEC SQL WHENEVER SQLERROR SQLPRINT;
@@ -616,7 +611,15 @@ int main( int argc, char *argv[] ){
 	number_of_motif[page_no] = 0;		/* Number of motif            */
 
 						/* Get data from DNA file     */
-	in_char = fgetc( in_fp );
+	in_char = '\0';
+	while( isalpha( in_char ) == 0 ){
+
+		in_char = fgetc( in_fp );
+
+		if( in_char == EOF ){
+			break;
+		}
+	}
 
 	column_cnt++;
 	sequence_cnt++;
@@ -791,6 +794,11 @@ int main( int argc, char *argv[] ){
 
 			current_orf++;
 						/* Output html tag            */
+			//fprintf(out_fp,
+			//	"<span class=orf%d title='Gene:'>",
+			//	overlap_buf[overlap_cnt]
+			//);
+
 			fprintf(out_fp,
 				"<span class=orf%d title='Gene:%s:%s'>",
 				overlap_buf[overlap_cnt],
@@ -840,7 +848,7 @@ int main( int argc, char *argv[] ){
 			case 'a':
 						/* Output html tag            */
 				fprintf(out_fp,
-				"<span class=adenine>A</span>"
+					"<span class=adenine count=%ld>A</span>",column_cnt
 				);
 				break;
 
@@ -849,7 +857,7 @@ int main( int argc, char *argv[] ){
 			case 't':
 						/* Output html tag            */
 				fprintf(out_fp,
-					"<span class=thymine>T</span>"
+					"<span class=thymine count=%ld>T</span>",column_cnt
 				);
 				break;
 
@@ -858,7 +866,7 @@ int main( int argc, char *argv[] ){
 			case 'g':
 						/* Output html tag            */
 				fprintf(out_fp,
-					"<span class=guanine>G</span>"
+					"<span class=guanine count=%ld>G</span>",column_cnt
 				);
 				break;
 
@@ -867,11 +875,16 @@ int main( int argc, char *argv[] ){
 			case 'c':
 						/* Output html tag            */
 				fprintf(out_fp,
-					"<span class=cytosine>C</span>"
+					"<span class=cytosine count=%ld>C</span>",column_cnt
 				);
 				break;
 
+						/* Unknown                    */
 			default:
+						/* Output html tag            */
+				fprintf(out_fp,
+					"<span class=unknown count=%ld>X</span>",column_cnt
+				);
 				break;
 		}
 						/* Case of end to orf         */
@@ -898,6 +911,11 @@ int main( int argc, char *argv[] ){
 				in_orf_flg = OFF;
 			}else{
 						/* Output html tag            */
+				//fprintf(out_fp,
+				//	"<span class=orf%d title='Gene:'>",
+				//	overlap_buf[overlap_cnt+1]
+				//);
+
 				fprintf(out_fp,
 					"<span class=orf%d title='Gene:%s:%s'>",
 					overlap_buf[overlap_cnt+1],
@@ -1063,6 +1081,11 @@ int main( int argc, char *argv[] ){
 						/* Case of ORF now            */
 			if( in_orf_flg == ON ){
 						/* Output html tag            */
+				//fprintf(out_fp,
+				//	"<span class=orf%d title='Gene:'>",
+				//	overlap_buf[overlap_cnt]
+				//);
+
 				fprintf(out_fp,
 					"<span class=orf%d title='Gene:%s:%s'>",
 					overlap_buf[overlap_cnt],
@@ -1084,7 +1107,15 @@ int main( int argc, char *argv[] ){
 			}
 		}
 						/* Get next sequence          */
-		in_char = fgetc( in_fp );
+		in_char = '\0';
+		while( isalpha( (int)in_char ) == 0 ){
+
+			in_char = fgetc( in_fp );
+
+			if( in_char == EOF ){
+				break;
+			}
+		}
 						/* increment counter          */
 		column_cnt++;
 		sequence_cnt++;
