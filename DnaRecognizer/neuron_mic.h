@@ -8,7 +8,19 @@
 /* Author : Akihiro Kashiwagi                                                 */
 /* e-mail : a-kashiwagi@mippi-mail.com                                        */
 /*                                                                            */
-/* Copyright(c)2015 Akihiro Kashiwagi All Right Reserved                      */
+/* Computations were partially performed on the NIG supercomputer             */
+/* at ROIS National Institute of Genetics.                                    */
+/*                                                                            */
+/* Copyright(c)2015 Akihiro Kashiwagi All Rights Reserved                     */
+/*                                                                            */
+/* This software is freeware and shareware.                                   */
+/* and case of business use, Please 10[%] part of profit pay for me.          */
+/* because I must eat bread every day.(see Genesis 3:19)                      */
+/* please you will inquire to me about detail information.                    */
+/*                                                                            */
+/* e-mail: a-kashiwagi@mippi-mail.com                                         */
+/*                                                                            */
+/* and I thanks for YHWH GOD, your creation is wonderful.                     */
 /*                                                                            */
 /* Replace -------------------------------------------------------------------*/
 /*                                                                            */
